@@ -11,13 +11,19 @@ type Request struct {
 	Data    interface{} `json:"DATA,omitempty"`
 }
 
-//NewRequest creates new fastbill api request
-func NewRequest(service string, parameter *parameter.Parameter, filter interface{}) Request {
+//NewRequestWithFilters creates new fastbill api request
+func NewRequestWithFilters(service string, parameter *parameter.Parameter, filter interface{}) Request {
 	return Request{
 		Service: service,
 		Limit:   parameter.Limit,
 		Filter:  filter,
 		Offset:  parameter.Offset,
 	}
+}
 
+func NewRequestWithData(service string, data interface{}) Request {
+	return Request{
+		Service: service,
+		Data: data,
+	}
 }
