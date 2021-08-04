@@ -11,17 +11,17 @@ import (
 
 //Client includes all customer api services
 type Client struct {
-	client *session.Session
+	client session.Session
 }
 
 //NewCustomerClient creates a new customer api client
-func NewCustomerClient(c *session.Session) *Client {
+func NewCustomerClient(c session.Session) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
 //Get get all customers restricted by the given filters
-func (c Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Customer, error) {
+func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Customer, error) {
 
 	fastBillRequest := request.NewRequest("customer.get", parameter, filter)
 	res, err := c.client.DoRequest(fastBillRequest)

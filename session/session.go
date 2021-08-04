@@ -19,8 +19,8 @@ import (
 const baseURL string = "https://my.fastbill.com/api/1.0/api.php"
 
 //NewSession creates new fastbill api client
-func NewSession(email string, apiKey string) *Session {
-	client := &Session{
+func NewSession(email string, apiKey string) Session {
+	client := &FastBillSession{
 		email:  email,
 		apiKey: apiKey,
 		client: &http.Client{},
@@ -29,15 +29,19 @@ func NewSession(email string, apiKey string) *Session {
 	return client
 }
 
-//Session the fastbill api client
-type Session struct {
+type Session interface {
+	DoRequest(fastBillRequest request.Request) (response.Response, error)
+}
+
+//FastBillSession the fastbill api client
+type FastBillSession struct {
 	email  string
 	apiKey string
 	client *http.Client
 }
 
 //DoRequest Executes the api call
-func (c Session) DoRequest(fastBillRequest request.Request) (response.Response, error) {
+func (c *FastBillSession) DoRequest(fastBillRequest request.Request) (response.Response, error) {
 	var fastBillResponse response.Response
 
 	requestJSON, err := json.Marshal(fastBillRequest)
