@@ -2,11 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"log"
+	"os"
+
 	"github.com/malsch-solutions/fastbill-go-sdk/customer"
 	"github.com/malsch-solutions/fastbill-go-sdk/parameter"
 	"github.com/malsch-solutions/fastbill-go-sdk/session"
-	"log"
-	"os"
 )
 
 func main() {

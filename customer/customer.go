@@ -2,6 +2,7 @@ package customer
 
 import (
 	"errors"
+
 	"github.com/malsch-solutions/fastbill-go-sdk/parameter"
 	"github.com/malsch-solutions/fastbill-go-sdk/request"
 	"github.com/malsch-solutions/fastbill-go-sdk/session"

@@ -6,6 +6,7 @@ type Response struct {
 	Response interface{} `json:"RESPONSE"`
 }
 
+//ErrorResponse api error response
 type ErrorResponse struct {
 	Errors []string `json:"ERRORS"`
 }

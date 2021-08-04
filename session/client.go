@@ -5,11 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"github.com/mitchellh/mapstructure"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/mitchellh/mapstructure"
 
 	"github.com/malsch-solutions/fastbill-go-sdk/request"
 	"github.com/malsch-solutions/fastbill-go-sdk/response"
