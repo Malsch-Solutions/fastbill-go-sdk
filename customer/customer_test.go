@@ -23,6 +23,7 @@ func (c *dummySession) DoRequest(fastBillRequest request.Request) (response.Resp
 func TestNewCustomerClient(t *testing.T) {
 	client := NewCustomerClient(&dummySession{})
 	assert.IsType(t, &Client{}, client)
+	assert.True(t, false)
 }
 
 func TestCustomerClientGet(t *testing.T) {
