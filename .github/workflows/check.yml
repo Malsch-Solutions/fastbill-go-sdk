@@ -1,4 +1,4 @@
-name: Go workflow
+name: Checks
 on: [ push ]
 jobs:
   test:
