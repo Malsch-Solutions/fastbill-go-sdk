@@ -73,7 +73,7 @@ func TestDoWithNoBodyErrorRequest(t *testing.T) {
 	mockClient := MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
-				Body: io.NopCloser(strings.NewReader("")),
+				Body: ioutil.NopCloser(strings.NewReader("")),
 			}, nil
 		},
 	}
