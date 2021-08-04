@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -98,7 +97,7 @@ func TestDoWithFastBillErrorRequest(t *testing.T) {
 			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
 
 			return &http.Response{
-				Body: io.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
 			}, nil
 		},
 	}
