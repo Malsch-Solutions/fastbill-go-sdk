@@ -40,9 +40,9 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Customer
 }
 
 //Create create a customer
-func (c *Client) Create(customer *Customer) (Response, error) {
+func (c *Client) Create(customer *Customer) (CreateResponse, error) {
 
-	var responseCustomer Response
+	var responseCustomer CreateResponse
 
 	fastBillRequest := request.NewRequestWithData("customer.create", customer)
 	res, err := c.client.DoRequest(fastBillRequest)
@@ -60,9 +60,9 @@ func (c *Client) Create(customer *Customer) (Response, error) {
 }
 
 //Update update a customer
-func (c *Client) Update(customer *Customer) (Response, error) {
+func (c *Client) Update(customer *Customer) (UpdateResponse, error) {
 
-	var responseCustomer Response
+	var responseCustomer UpdateResponse
 
 	fastBillRequest := request.NewRequestWithData("customer.update", customer)
 	res, err := c.client.DoRequest(fastBillRequest)
