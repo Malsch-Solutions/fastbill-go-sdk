@@ -124,19 +124,19 @@ func TestContactWrongStructClientGet(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestContacWrongStructClientCreate(t *testing.T) {
+func TestContactWrongStructClientCreate(t *testing.T) {
 	client := NewContactClient(&dummyWrongStructService{})
 	_, err := client.Create(&Contact{})
 	assert.Error(t, err)
 }
 
-func TestContacWrongStructClientUpdate(t *testing.T) {
+func TestContactWrongStructClientUpdate(t *testing.T) {
 	client := NewContactClient(&dummyWrongStructService{})
 	_, err := client.Update(&Contact{})
 	assert.Error(t, err)
 }
 
-func TestContacWrongStructClientDelete(t *testing.T) {
+func TestContactWrongStructClientDelete(t *testing.T) {
 	client := NewContactClient(&dummyWrongStructService{})
 	_, err := client.Delete("1337", "17")
 	assert.Error(t, err)

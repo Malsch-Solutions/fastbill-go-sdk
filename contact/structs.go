@@ -55,7 +55,8 @@ type getResponse struct {
 }
 
 type deleteRequest struct {
-	ContactID string `json:"CONTACT_ID"`
+	ContactID  string `json:"CONTACT_ID"`
+	CustomerID string `json:"CUSTOMER_ID"`
 }
 
 type deleteResponse struct {
