@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"github.com/mitchellh/mapstructure"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/malsch-solutions/fastbill-go-sdk/request"
 	"github.com/malsch-solutions/fastbill-go-sdk/response"
@@ -67,6 +70,12 @@ func (c Session) DoRequest(fastBillRequest request.Request) (response.Response, 
 
 	if err := json.Unmarshal(body, &fastBillResponse); err != nil {
 		return fastBillResponse, err
+	}
+
+	var errorResponse response.ErrorResponse
+	err = mapstructure.Decode(fastBillResponse.Response, &errorResponse)
+	if err == nil && len(errorResponse.Errors) > 0 {
+		return response.Response{}, errors.New(strings.Join(errorResponse.Errors, ","))
 	}
 
 	return fastBillResponse, nil
