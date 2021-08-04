@@ -1,6 +1,7 @@
 # fastbill-go-sdk
 [![Checks](https://github.com/Malsch-Solutions/fastbill-go-sdk/actions/workflows/check.yml/badge.svg)](https://github.com/Malsch-Solutions/fastbill-go-sdk/actions/workflows/check.yml)
 [![codecov](https://codecov.io/gh/Malsch-Solutions/fastbill-go-sdk/branch/main/graph/badge.svg?token=NYMO09X0BU)](https://codecov.io/gh/Malsch-Solutions/fastbill-go-sdk)
+[![Go Reference](https://pkg.go.dev/badge/github.com/malsch-solutions/fastbill-go-sdk.svg)](https://pkg.go.dev/github.com/malsch-solutions/fastbill-go-sdk)
 
 golang sdk for the api of https://www.fastbill.com/
 
