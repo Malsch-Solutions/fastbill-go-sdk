@@ -3,18 +3,18 @@ package customer
 import (
 	"errors"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/pkg/client"
-	"github.com/malsch-solutions/fastbill-go-sdk/pkg/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/pkg/request"
+	"github.com/malsch-solutions/fastbill-go-sdk/parameter"
+	"github.com/malsch-solutions/fastbill-go-sdk/request"
+	"github.com/malsch-solutions/fastbill-go-sdk/session"
 )
 
 //Client includes all customer api services
 type Client struct {
-	client *client.Client
+	client *session.Session
 }
 
 //NewCustomerClient creates a new customer api client
-func NewCustomerClient(c *client.Client) *Client {
+func NewCustomerClient(c *session.Session) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }

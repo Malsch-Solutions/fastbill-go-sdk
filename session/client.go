@@ -1,4 +1,4 @@
-package client
+package session
 
 import (
 	"bytes"
@@ -8,15 +8,15 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/pkg/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/pkg/response"
+	"github.com/malsch-solutions/fastbill-go-sdk/request"
+	"github.com/malsch-solutions/fastbill-go-sdk/response"
 )
 
 const baseURL string = "https://my.fastbill.com/api/1.0/api.php"
 
-//NewClient creates new fastbill api client
-func NewClient(email string, apiKey string) *Client {
-	client := &Client{
+//NewSession creates new fastbill api client
+func NewSession(email string, apiKey string) *Session {
+	client := &Session{
 		email:  email,
 		apiKey: apiKey,
 		client: &http.Client{},
@@ -25,15 +25,15 @@ func NewClient(email string, apiKey string) *Client {
 	return client
 }
 
-//Client the fastbill api client
-type Client struct {
+//Session the fastbill api client
+type Session struct {
 	email  string
 	apiKey string
 	client *http.Client
 }
 
 //DoRequest Executes the api call
-func (c Client) DoRequest(fastBillRequest request.Request) (response.Response, error) {
+func (c Session) DoRequest(fastBillRequest request.Request) (response.Response, error) {
 	var fastBillResponse response.Response
 
 	requestJSON, err := json.Marshal(fastBillRequest)
