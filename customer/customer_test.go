@@ -37,7 +37,7 @@ func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Resp
 
 	if fastBillRequest.Service == "customer.delete" {
 		return response.Response{
-			Response: deleteResponse{ Status: "success"},
+			Response: deleteResponse{Status: "success"},
 		}, nil
 	}
 

@@ -1,7 +1,6 @@
 package customer
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/malsch-solutions/fastbill-go-sdk/parameter"
@@ -34,7 +33,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Customer
 	var customerResponse getResponse
 	err = mapstructure.Decode(res.Response, &customerResponse)
 	if err != nil {
-		return make([]Customer, 0), errors.New(fmt.Sprintf("failed to parse customer response: %s", err.Error()))
+		return make([]Customer, 0), fmt.Errorf("failed to parse customer response: %s", err.Error())
 	}
 
 	return customerResponse.Customers, nil
@@ -54,7 +53,7 @@ func (c *Client) Create(customer *Customer) (Response, error) {
 
 	err = mapstructure.Decode(res.Response, &responseCustomer)
 	if err != nil {
-		return responseCustomer, errors.New(fmt.Sprintf("failed to parse customer response: %s", err.Error()))
+		return responseCustomer, fmt.Errorf("failed to parse customer response: %s", err.Error())
 	}
 
 	return responseCustomer, nil
@@ -74,7 +73,7 @@ func (c *Client) Update(customer *Customer) (Response, error) {
 
 	err = mapstructure.Decode(res.Response, &responseCustomer)
 	if err != nil {
-		return responseCustomer, errors.New(fmt.Sprintf("failed to parse customer response: %s", err.Error()))
+		return responseCustomer, fmt.Errorf("failed to parse customer response: %s", err.Error())
 	}
 
 	return responseCustomer, nil
@@ -93,7 +92,7 @@ func (c *Client) Delete(customerID string) (bool, error) {
 
 	err = mapstructure.Decode(res.Response, &deleteRes)
 	if err != nil {
-		return false, errors.New(fmt.Sprintf("failed to parse customer response: %s", err.Error()))
+		return false, fmt.Errorf("failed to parse customer response: %s", err.Error())
 	}
 
 	return deleteRes.Status == "success", nil

@@ -53,9 +53,10 @@ type Customer struct {
 	DocumentHistoryURL          string `json:"DOCUMENT_HISTORY_URL,omitempty" mapstructure:"DOCUMENT_HISTORY_URL"`
 }
 
+//Response customer api response
 type Response struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
-	CustomerID int `json:"CUSTOMER_ID" mapstructure:"CUSTOMER_ID"`
+	Status     string `json:"STATUS" mapstructure:"STATUS"`
+	CustomerID int    `json:"CUSTOMER_ID" mapstructure:"CUSTOMER_ID"`
 }
 
 type getResponse struct {

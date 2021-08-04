@@ -30,7 +30,7 @@ customers, err := customerClient.Get(&parameter.Parameter{
 
 ## API Coverage
 
-- [ ] Customers
+- [x] Customers
 - [ ] Estimates
 - [ ] Invoices
 - [ ] Items
