@@ -1,0 +1,39 @@
+name: Go workflow
+on: [ push ]
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        #os: [ubuntu-latest, windows-latest, macos-latest]
+        #go: ['1.12', '1.13', '1.14', '1.15', '1.16']
+        os: [ ubuntu-latest ]
+        go: [ '1.16' ]
+    steps:
+      - name: Go ${{ matrix.go }}
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Get dependencies
+        run: go get -t -v
+      - name: Setup
+        run: |
+          go get golang.org/x/lint/golint
+          go get golang.org/x/tools/cmd/goimports
+      - name: Run test
+        run: golint -set_exit_status $(go list ./... | grep -v /vendor/)
+      - name: Run vet
+        run: go vet ./...
+      - name: Run imports
+        run: |
+          output=$(goimports -l .)
+          echo $output >&2;
+          if  [[  ${#output} -ge 1 ]] ; then exit 1; else exit 0; fi
+      - name: Run tests
+        run: go test ./...
+
+
+
