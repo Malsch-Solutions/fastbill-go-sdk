@@ -81,7 +81,7 @@ func (c *Client) Update(contact *Contact) (UpdateResponse, error) {
 
 //Delete delete a contact
 func (c *Client) Delete(contactID string, customerID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("contact.delete", deleteRequest{ContactID: contactID})
+	fastBillRequest := request.NewRequestWithData("contact.delete", deleteRequest{ContactID: contactID, CustomerID: customerID})
 	res, err := c.client.DoRequest(fastBillRequest)
 
 	if err != nil {
