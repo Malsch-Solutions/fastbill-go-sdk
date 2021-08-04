@@ -19,10 +19,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup
         run: |
-          go get -u golang.org/x/lint/golint
           go get -u golang.org/x/tools/cmd/goimports
-      - name: Run test
-        run: golint -set_exit_status $(go list ./... | grep -v /vendor/)
       - name: Run vet
         run: go vet ./...
       - name: Run imports
