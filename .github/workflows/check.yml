@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Success
-        run: return true
+        run: exit 0
 
 
 
