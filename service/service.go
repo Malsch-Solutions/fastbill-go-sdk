@@ -17,7 +17,8 @@ import (
 
 const baseURL string = "https://my.fastbill.com/api/1.0/api.php"
 
-type HttpClient interface {
+//HTTPClient http client interface
+type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
@@ -33,7 +34,7 @@ func NewService(email string, apiKey string) Service {
 }
 
 //NewServiceWithClient creates new fastbill api client
-func NewServiceWithClient(email string, apiKey string, httpClient HttpClient) Service {
+func NewServiceWithClient(email string, apiKey string, httpClient HTTPClient) Service {
 	client := &FastBillService{
 		email:  email,
 		apiKey: apiKey,
@@ -52,7 +53,7 @@ type Service interface {
 type FastBillService struct {
 	email  string
 	apiKey string
-	client HttpClient
+	client HTTPClient
 }
 
 //DoRequest Executes the api call
