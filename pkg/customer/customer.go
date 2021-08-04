@@ -23,6 +23,7 @@ type getResponse struct {
 	Customers []Customer `json:"CUSTOMERS"`
 }
 
+//Get get all customers restricted by the given filters
 func (c Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Customer, error) {
 
 	fastBillRequest := request.NewRequest("customer.get", parameter, filter)
