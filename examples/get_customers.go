@@ -23,6 +23,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	customerJson, _ := json.Marshal(customers)
-	log.Println(string(customerJson))
+	customerJSON, _ := json.Marshal(customers)
+	log.Println(string(customerJSON))
 }
