@@ -2,7 +2,7 @@ name: Checks
 on: [ push ]
 jobs:
   test:
-    name: Go ${{ matrix.go } on ${{ matrix.os }}
+    name: Go ${{ matrix.go }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
