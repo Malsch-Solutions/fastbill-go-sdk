@@ -47,9 +47,8 @@ type CreateResponse struct {
 //UpdateResponse customer api response
 type UpdateResponse struct {
 	Status    string `json:"STATUS" mapstructure:"STATUS"`
-	ContactID string    `json:"CONTACT_ID" mapstructure:"CONTACT_ID"`
+	ContactID string `json:"CONTACT_ID" mapstructure:"CONTACT_ID"`
 }
-
 
 type getResponse struct {
 	Contacts []Contact `json:"CONTACTS"`
