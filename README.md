@@ -17,12 +17,12 @@ fastbillSession := session.NewSession(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FA
 ```
 Create the desired client for example for customers
 ```golang
-	customerClient := customer.NewCustomerClient(fastbillSession)
+customerClient := customer.NewCustomerClient(fastbillSession)
 ```
 Call the method of your choice
 ```
-	customers, err := customerClient.Get(&parameter.Parameter{
-		Limit:  10,
-		Offset: 0,
-	}, nil)
+customers, err := customerClient.Get(&parameter.Parameter{
+    Limit:  10,
+    Offset: 0,
+}, nil)
 ```
