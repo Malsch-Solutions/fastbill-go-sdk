@@ -42,7 +42,6 @@ func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Resp
 	}
 
 	return response.Response{}, errors.New("unknown service")
-
 }
 
 func TestNewContactClient(t *testing.T) {
@@ -77,4 +76,68 @@ func TestContactClientDelete(t *testing.T) {
 	resp, err := client.Delete("1337", "17")
 	assert.NoError(t, err)
 	assert.True(t, resp)
+}
+
+type dummyErrorService struct {
+}
+
+func (c *dummyErrorService) DoRequest(_ request.Request) (response.Response, error) {
+	return response.Response{}, errors.New("unknown service")
+}
+
+func TestContactErrorClientGet(t *testing.T) {
+	client := NewContactClient(&dummyErrorService{})
+	_, err := client.Get(&parameter.Parameter{}, nil)
+	assert.Error(t, err)
+}
+
+func TestContacErrorClientCreate(t *testing.T) {
+	client := NewContactClient(&dummyErrorService{})
+	_, err := client.Create(&Contact{})
+	assert.Error(t, err)
+}
+
+func TestContacErrorClientUpdate(t *testing.T) {
+	client := NewContactClient(&dummyErrorService{})
+	_, err := client.Update(&Contact{})
+	assert.Error(t, err)
+}
+
+func TestContacErrorClientDelete(t *testing.T) {
+	client := NewContactClient(&dummyErrorService{})
+	_, err := client.Delete("1337", "17")
+	assert.Error(t, err)
+}
+
+type dummyWrongStructService struct {
+}
+
+func (c *dummyWrongStructService) DoRequest(_ request.Request) (response.Response, error) {
+	return response.Response{
+		Response: true,
+	}, nil
+}
+
+func TestContactWrongStructClientGet(t *testing.T) {
+	client := NewContactClient(&dummyWrongStructService{})
+	_, err := client.Get(&parameter.Parameter{}, nil)
+	assert.Error(t, err)
+}
+
+func TestContacWrongStructClientCreate(t *testing.T) {
+	client := NewContactClient(&dummyWrongStructService{})
+	_, err := client.Create(&Contact{})
+	assert.Error(t, err)
+}
+
+func TestContacWrongStructClientUpdate(t *testing.T) {
+	client := NewContactClient(&dummyWrongStructService{})
+	_, err := client.Update(&Contact{})
+	assert.Error(t, err)
+}
+
+func TestContacWrongStructClientDelete(t *testing.T) {
+	client := NewContactClient(&dummyWrongStructService{})
+	_, err := client.Delete("1337", "17")
+	assert.Error(t, err)
 }

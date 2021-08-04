@@ -78,3 +78,67 @@ func TestCustomerClientDelete(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, resp)
 }
+
+type dummyErrorService struct {
+}
+
+func (c *dummyErrorService) DoRequest(_ request.Request) (response.Response, error) {
+	return response.Response{}, errors.New("unknown service")
+}
+
+func TestCustomerErrorClientGet(t *testing.T) {
+	client := NewCustomerClient(&dummyErrorService{})
+	_, err := client.Get(&parameter.Parameter{}, nil)
+	assert.Error(t, err)
+}
+
+func TestContacErrorClientCreate(t *testing.T) {
+	client := NewCustomerClient(&dummyErrorService{})
+	_, err := client.Create(&Customer{})
+	assert.Error(t, err)
+}
+
+func TestContacErrorClientUpdate(t *testing.T) {
+	client := NewCustomerClient(&dummyErrorService{})
+	_, err := client.Update(&Customer{})
+	assert.Error(t, err)
+}
+
+func TestContacErrorClientDelete(t *testing.T) {
+	client := NewCustomerClient(&dummyErrorService{})
+	_, err := client.Delete("1337")
+	assert.Error(t, err)
+}
+
+type dummyWrongStructService struct {
+}
+
+func (c *dummyWrongStructService) DoRequest(_ request.Request) (response.Response, error) {
+	return response.Response{
+		Response: true,
+	}, nil
+}
+
+func TestCustomerWrongStructClientGet(t *testing.T) {
+	client := NewCustomerClient(&dummyWrongStructService{})
+	_, err := client.Get(&parameter.Parameter{}, nil)
+	assert.Error(t, err)
+}
+
+func TestContacWrongStructClientCreate(t *testing.T) {
+	client := NewCustomerClient(&dummyWrongStructService{})
+	_, err := client.Create(&Customer{})
+	assert.Error(t, err)
+}
+
+func TestContacWrongStructClientUpdate(t *testing.T) {
+	client := NewCustomerClient(&dummyWrongStructService{})
+	_, err := client.Update(&Customer{})
+	assert.Error(t, err)
+}
+
+func TestContacWrongStructClientDelete(t *testing.T) {
+	client := NewCustomerClient(&dummyWrongStructService{})
+	_, err := client.Delete("1337")
+	assert.Error(t, err)
+}
