@@ -17,8 +17,6 @@ jobs:
           go-version: ${{ matrix.go }}
       - name: Checkout source code
         uses: actions/checkout@v2
-      - name: Get dependencies
-        run: go get -t -v
       - name: Setup
         run: |
           go get golang.org/x/lint/golint
