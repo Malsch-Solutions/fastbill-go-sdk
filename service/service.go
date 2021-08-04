@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
@@ -18,12 +17,27 @@ import (
 
 const baseURL string = "https://my.fastbill.com/api/1.0/api.php"
 
+type HttpClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 //NewService creates new fastbill api client
 func NewService(email string, apiKey string) Service {
 	client := &FastBillService{
 		email:  email,
 		apiKey: apiKey,
 		client: &http.Client{},
+	}
+
+	return client
+}
+
+//NewServiceWithClient creates new fastbill api client
+func NewServiceWithClient(email string, apiKey string, httpClient HttpClient) Service {
+	client := &FastBillService{
+		email:  email,
+		apiKey: apiKey,
+		client: httpClient,
 	}
 
 	return client
@@ -38,7 +52,7 @@ type Service interface {
 type FastBillService struct {
 	email  string
 	apiKey string
-	client *http.Client
+	client HttpClient
 }
 
 //DoRequest Executes the api call
@@ -46,7 +60,6 @@ func (c *FastBillService) DoRequest(fastBillRequest request.Request) (response.R
 	var fastBillResponse response.Response
 
 	requestJSON, err := json.Marshal(fastBillRequest)
-
 	if err != nil {
 		return fastBillResponse, err
 	}
@@ -67,9 +80,7 @@ func (c *FastBillService) DoRequest(fastBillRequest request.Request) (response.R
 	}
 
 	defer func() {
-		if err := res.Body.Close(); err != nil {
-			log.Println(err)
-		}
+		_ = res.Body.Close()
 	}()
 
 	body, _ := ioutil.ReadAll(res.Body)
