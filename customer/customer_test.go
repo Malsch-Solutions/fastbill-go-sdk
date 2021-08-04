@@ -1,11 +1,12 @@
 package customer
 
 import (
+	"testing"
+
 	"github.com/malsch-solutions/fastbill-go-sdk/parameter"
 	"github.com/malsch-solutions/fastbill-go-sdk/request"
 	"github.com/malsch-solutions/fastbill-go-sdk/response"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 type dummySession struct {

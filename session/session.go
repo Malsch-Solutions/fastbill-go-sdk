@@ -29,6 +29,7 @@ func NewSession(email string, apiKey string) Session {
 	return client
 }
 
+//Session session interface
 type Session interface {
 	DoRequest(fastBillRequest request.Request) (response.Response, error)
 }
