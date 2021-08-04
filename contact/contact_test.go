@@ -25,13 +25,13 @@ func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Resp
 
 	if fastBillRequest.Service == "contact.create" {
 		return response.Response{
-			Response: Response{ContactID: 10, Status: "success"},
+			Response: CreateResponse{ContactID: 10, Status: "success"},
 		}, nil
 	}
 
 	if fastBillRequest.Service == "contact.update" {
 		return response.Response{
-			Response: Response{ContactID: 10, Status: "success"},
+			Response: UpdateResponse{ContactID: "10", Status: "success"},
 		}, nil
 	}
 
@@ -62,14 +62,14 @@ func TestContactClientCreate(t *testing.T) {
 	client := NewContactClient(&dummyService{})
 	resp, err := client.Create(&Contact{})
 	assert.NoError(t, err)
-	assert.IsType(t, Response{}, resp)
+	assert.IsType(t, CreateResponse{}, resp)
 }
 
 func TestContactClientUpdate(t *testing.T) {
 	client := NewContactClient(&dummyService{})
 	resp, err := client.Update(&Contact{})
 	assert.NoError(t, err)
-	assert.IsType(t, Response{}, resp)
+	assert.IsType(t, UpdateResponse{}, resp)
 }
 
 func TestContactClientDelete(t *testing.T) {
