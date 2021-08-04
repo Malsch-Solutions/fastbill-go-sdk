@@ -5,4 +5,3 @@ type Parameter struct {
 	Limit  *int
 	Offset *int
 }
-
