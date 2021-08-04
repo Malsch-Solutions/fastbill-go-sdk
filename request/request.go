@@ -5,8 +5,8 @@ import "github.com/malsch-solutions/fastbill-go-sdk/parameter"
 //Request fastbill api request
 type Request struct {
 	Service string      `json:"SERVICE"`
-	Limit   int        `json:"LIMIT,omitempty"`
-	Offset  int        `json:"OFFSET,omitempty"`
+	Limit   int         `json:"LIMIT,omitempty"`
+	Offset  int         `json:"OFFSET,omitempty"`
 	Filter  interface{} `json:"FILTER,omitempty"`
 	Data    interface{} `json:"DATA,omitempty"`
 }
