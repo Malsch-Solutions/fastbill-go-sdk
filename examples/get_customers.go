@@ -7,13 +7,13 @@ import (
 
 	"github.com/malsch-solutions/fastbill-go-sdk/customer"
 	"github.com/malsch-solutions/fastbill-go-sdk/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/session"
+	"github.com/malsch-solutions/fastbill-go-sdk/service"
 )
 
 func main() {
-	fastbillSession := session.NewSession(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FASTBILL_API_KEY"))
+	fastbillService := service.NewService(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FASTBILL_API_KEY"))
 
-	customerClient := customer.NewCustomerClient(fastbillSession)
+	customerClient := customer.NewCustomerClient(fastbillService)
 
 	customers, err := customerClient.Get(&parameter.Parameter{
 		Limit:  10,
@@ -23,6 +23,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Println(json.Marshal(customers))
+	customerJson, _ := json.Marshal(customers)
+	log.Println(string(customerJson))
 }

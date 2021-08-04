@@ -12,13 +12,13 @@ Put the sdk package on your import statement
 ```golang
 import "github.com/malsch-solutions/fastbill-go-sdk"
 ```
-Initialize your fastbill session
+Initialize your fastbill service
 ```golang
-fastbillSession := session.NewSession(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FASTBILL_API_KEY"))
+fastbillService := service.NewService(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FASTBILL_API_KEY"))
 ```
 Create the desired client for example for customers
 ```golang
-customerClient := customer.NewCustomerClient(fastbillSession)
+customerClient := customer.NewCustomerClient(fastbillService)
 ```
 Call the method of your choice
 ```

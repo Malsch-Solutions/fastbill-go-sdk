@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type dummySession struct {
+type dummyService struct {
 }
 
-func (c *dummySession) DoRequest(fastBillRequest request.Request) (response.Response, error) {
+func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Response, error) {
 	return response.Response{
 		Response: getResponse{Customers: []Customer{
 			{},
@@ -21,12 +21,12 @@ func (c *dummySession) DoRequest(fastBillRequest request.Request) (response.Resp
 }
 
 func TestNewCustomerClient(t *testing.T) {
-	client := NewCustomerClient(&dummySession{})
+	client := NewCustomerClient(&dummyService{})
 	assert.IsType(t, &Client{}, client)
 }
 
 func TestCustomerClientGet(t *testing.T) {
-	client := NewCustomerClient(&dummySession{})
+	client := NewCustomerClient(&dummyService{})
 	resp, err := client.Get(&parameter.Parameter{}, nil)
 	assert.NoError(t, err)
 	assert.IsType(t, []Customer{}, resp)
