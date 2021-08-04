@@ -4,5 +4,5 @@ package response
 type Response struct {
 	Request  interface{} `json:"REQUEST"`
 	Response interface{} `json:"RESPONSE"`
-	Errors   *[]string    `json:"errors"`
+	Errors   *[]string   `json:"errors"`
 }
