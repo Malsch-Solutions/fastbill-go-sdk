@@ -154,7 +154,7 @@ type SetPaidRequest struct {
 //SetPaidResponse invoice api response
 type SetPaidResponse struct {
 	Status        string `json:"STATUS" mapstructure:"STATUS"`
-	InvoiceNumber string `json:"INVOICE_NUMBER	" mapstructure:"INVOICE_NUMBER	"`
+	InvoiceNumber string `json:"INVOICE_NUMBER" mapstructure:"INVOICE_NUMBER"`
 }
 
 type getResponse struct {

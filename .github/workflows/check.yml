@@ -19,8 +19,11 @@ jobs:
         run: |
           go get -u golang.org/x/lint/golint
           go get -u golang.org/x/tools/cmd/goimports
+          go get -u honnef.co/go/tools/cmd/staticcheck
       - name: Run lint
         run: golint -set_exit_status $(go list ./... | grep -v /vendor/)
+      - name: Run static check
+        run: staticcheck ./...
       - name: Run vet
         run: go vet ./...
       - name: Run imports
