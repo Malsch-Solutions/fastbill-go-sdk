@@ -26,3 +26,19 @@ customers, err := customerClient.Get(&parameter.Parameter{
     Offset: 0,
 }, nil)
 ```
+
+## API Coverage
+
+- [ ] Customers
+- [ ] Estimates
+- [ ] Invoices
+- [ ] Items
+- [ ] Recurring invoices
+- [ ] Revenues
+- [ ] Expenses
+- [ ] Products
+- [ ] Projects
+- [ ] Work times
+- [ ] Documents
+- [ ] Templates
+- [ ] Webhooks
