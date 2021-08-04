@@ -22,7 +22,7 @@ Create the desired client for example for customers
 customerClient := customer.NewCustomerClient(fastbillService)
 ```
 Call the method of your choice
-```
+```golang
 customers, err := customerClient.Get(&parameter.Parameter{
     Limit:  10,
     Offset: 0,
