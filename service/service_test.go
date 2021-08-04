@@ -59,7 +59,7 @@ func TestDoRequest(t *testing.T) {
 			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
 
 			return &http.Response{
-				Body: io.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
 			}, nil
 		},
 	}
