@@ -102,7 +102,7 @@ type Item struct {
 	VatValue      float64       `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
 	CompleteNet   int           `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
 	CompleteGross float64       `json:"COMPLETE_GROSS,omitempty" mapstructure:"COMPLETE_GROSS"`
-	Category      []interface{} `json:"CATEGORY,omitempty" mapstructure:"SORT_ORDER"`
+	Category      []interface{} `json:"CATEGORY,omitempty" mapstructure:"CATEGORY"`
 	SortOrder     int           `json:"SORT_ORDER,omitempty" mapstructure:"SORT_ORDER"`
 }
 
@@ -158,7 +158,7 @@ type SetPaidResponse struct {
 }
 
 type getResponse struct {
-	Invoices []Invoice `json:"INVOICES"`
+	Invoices []Invoice `json:"INVOICES" mapstructure:"INVOICES"`
 }
 
 type deleteRequest struct {
@@ -182,7 +182,7 @@ type SendByMailRequest struct {
 type SendByMailRecipients struct {
 	To  string `json:"TO,omitempty" mapstructure:"TO"`
 	Cc  string `json:"CC,omitempty" mapstructure:"CC"`
-	Bcc string `json:"BCC,omitempty" mapstructure:"TO"`
+	Bcc string `json:"BCC,omitempty" mapstructure:"BCC"`
 }
 
 type sendByMailResponse struct {
