@@ -34,7 +34,7 @@ customers, err := customerClient.Get(&parameter.Parameter{
 
 - [x] Customers
 - [x] Contacts
-- [ ] Estimates
+- [x] Estimates
 - [x] Invoices
 - [ ] Items
 - [ ] Recurring invoices
