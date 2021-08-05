@@ -162,7 +162,7 @@ type getResponse struct {
 }
 
 type deleteRequest struct {
-	InvoiceID string `json:"INVOICE_ID"`
+	InvoiceID string `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`
 }
 
 type deleteResponse struct {
