@@ -43,6 +43,6 @@ customers, err := customerClient.Get(&parameter.Parameter{
 - [ ] Products
 - [ ] Projects
 - [ ] Work times
-- [ ] Documents
-- [ ] Templates
+- [x] Documents
+- [x] Templates
 - [ ] Webhooks

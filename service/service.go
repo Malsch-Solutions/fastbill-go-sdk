@@ -5,8 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -47,6 +50,7 @@ func NewServiceWithClient(email string, apiKey string, httpClient HTTPClient) Se
 //Service service interface
 type Service interface {
 	DoRequest(fastBillRequest request.Request) (response.Response, error)
+	DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error)
 }
 
 //FastBillService the fastbill api client
@@ -54,6 +58,38 @@ type FastBillService struct {
 	email  string
 	apiKey string
 	client HTTPClient
+}
+
+//DoMultiPartRequest Executes the api call as with file upload
+func (c *FastBillService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
+	var fastBillResponse response.Response
+
+	requestJSON, err := json.Marshal(fastBillRequest)
+	if err != nil {
+		return fastBillResponse, err
+	}
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	_ = writer.SetBoundary("AaB03x")
+
+	bodyWriter, _ := writer.CreateFormField("httpbody")
+	_, _ = bodyWriter.Write(requestJSON)
+
+	fileWriter, _ := writer.CreateFormFile("document", fileName)
+	_, _ = io.Copy(fileWriter, file)
+
+	_ = writer.Close()
+
+	req := getRequest(body, c.email, c.apiKey, writer.FormDataContentType())
+	req.Header.Add("Content-Length", strconv.Itoa(body.Len()))
+	res, err := c.client.Do(req)
+	if err != nil {
+		return fastBillResponse, err
+	}
+
+	err = parseResponse(res, &fastBillResponse)
+	return fastBillResponse, err
 }
 
 //DoRequest Executes the api call
@@ -65,18 +101,29 @@ func (c *FastBillService) DoRequest(fastBillRequest request.Request) (response.R
 		return fastBillResponse, err
 	}
 
-	req, _ := http.NewRequest("POST", baseURL, bytes.NewBuffer(requestJSON))
-
-	req.Header.Add("Content-Type", "application/json")
-
-	basicHash := base64.StdEncoding.EncodeToString([]byte(c.email + ":" + c.apiKey))
-	req.Header.Add("Authorization", "Basic "+basicHash)
+	req := getRequest(bytes.NewBuffer(requestJSON), c.email, c.apiKey, "application/json")
 
 	res, err := c.client.Do(req)
 	if err != nil {
 		return fastBillResponse, err
 	}
 
+	err = parseResponse(res, &fastBillResponse)
+	return fastBillResponse, err
+}
+
+func getRequest(body io.Reader, email string, apiKey string, contentType string) *http.Request {
+	req, _ := http.NewRequest("POST", baseURL, body)
+
+	req.Header.Add("Content-Type", contentType)
+
+	basicHash := base64.StdEncoding.EncodeToString([]byte(email + ":" + apiKey))
+	req.Header.Add("Authorization", "Basic "+basicHash)
+
+	return req
+}
+
+func parseResponse(res *http.Response, fastBillResponse *response.Response) error {
 	defer func() {
 		_ = res.Body.Close()
 	}()
@@ -84,14 +131,14 @@ func (c *FastBillService) DoRequest(fastBillRequest request.Request) (response.R
 	body, _ := ioutil.ReadAll(res.Body)
 
 	if err := json.Unmarshal(body, &fastBillResponse); err != nil {
-		return fastBillResponse, err
+		return err
 	}
 
 	var errorResponse response.ErrorResponse
-	err = mapstructure.Decode(fastBillResponse.Response, &errorResponse)
+	err := mapstructure.Decode(fastBillResponse.Response, &errorResponse)
 	if err == nil && len(errorResponse.Errors) > 0 {
-		return response.Response{}, errors.New(strings.Join(errorResponse.Errors, ","))
+		return errors.New(strings.Join(errorResponse.Errors, ","))
 	}
 
-	return fastBillResponse, nil
+	return nil
 }

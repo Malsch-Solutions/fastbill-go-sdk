@@ -2,6 +2,7 @@ package estimate
 
 import (
 	"errors"
+	"io"
 	"testing"
 
 	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
@@ -47,6 +48,10 @@ func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Resp
 		}, nil
 	}
 
+	return response.Response{}, errors.New("unknown service")
+}
+
+func (c *dummyService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
 	return response.Response{}, errors.New("unknown service")
 }
 
@@ -100,6 +105,10 @@ func (c *dummyErrorService) DoRequest(_ request.Request) (response.Response, err
 	return response.Response{}, errors.New("unknown service")
 }
 
+func (c *dummyErrorService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
+	return response.Response{}, errors.New("unknown service")
+}
+
 func TestEstimateErrorClientGet(t *testing.T) {
 	client := NewEstimateClient(&dummyErrorService{})
 	_, err := client.Get(&parameter.Parameter{}, nil)
@@ -139,6 +148,10 @@ func (c *dummyWrongStructService) DoRequest(_ request.Request) (response.Respons
 	return response.Response{
 		Response: true,
 	}, nil
+}
+
+func (c *dummyWrongStructService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
+	return response.Response{}, errors.New("unknown service")
 }
 
 func TestEstimateWrongStructClientGet(t *testing.T) {
