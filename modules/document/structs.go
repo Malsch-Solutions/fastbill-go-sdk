@@ -38,6 +38,3 @@ type CreateResponse struct {
 	DocumentID int    `json:"DOCUMENT_ID" mapstructure:"DOCUMENT_ID"`
 	Status     string `json:"STATUS" mapstructure:"STATUS"`
 }
-
-type File struct {
-}
