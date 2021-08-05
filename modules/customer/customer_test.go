@@ -92,19 +92,19 @@ func TestCustomerErrorClientGet(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestContacErrorClientCreate(t *testing.T) {
+func TestCustomerErrorClientCreate(t *testing.T) {
 	client := NewCustomerClient(&dummyErrorService{})
 	_, err := client.Create(&Customer{})
 	assert.Error(t, err)
 }
 
-func TestContacErrorClientUpdate(t *testing.T) {
+func TestCustomerErrorClientUpdate(t *testing.T) {
 	client := NewCustomerClient(&dummyErrorService{})
 	_, err := client.Update(&Customer{})
 	assert.Error(t, err)
 }
 
-func TestContacErrorClientDelete(t *testing.T) {
+func TestCustomerErrorClientDelete(t *testing.T) {
 	client := NewCustomerClient(&dummyErrorService{})
 	_, err := client.Delete("1337")
 	assert.Error(t, err)
@@ -125,19 +125,19 @@ func TestCustomerWrongStructClientGet(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestContacWrongStructClientCreate(t *testing.T) {
+func TestCustomerWrongStructClientCreate(t *testing.T) {
 	client := NewCustomerClient(&dummyWrongStructService{})
 	_, err := client.Create(&Customer{})
 	assert.Error(t, err)
 }
 
-func TestContacWrongStructClientUpdate(t *testing.T) {
+func TestCustomerWrongStructClientUpdate(t *testing.T) {
 	client := NewCustomerClient(&dummyWrongStructService{})
 	_, err := client.Update(&Customer{})
 	assert.Error(t, err)
 }
 
-func TestContacWrongStructClientDelete(t *testing.T) {
+func TestCustomerWrongStructClientDelete(t *testing.T) {
 	client := NewCustomerClient(&dummyWrongStructService{})
 	_, err := client.Delete("1337")
 	assert.Error(t, err)
