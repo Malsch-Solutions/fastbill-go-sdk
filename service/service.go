@@ -65,10 +65,7 @@ func (c *FastBillService) DoRequest(fastBillRequest request.Request) (response.R
 		return fastBillResponse, err
 	}
 
-	req, err := http.NewRequest("POST", baseURL, bytes.NewBuffer(requestJSON))
-	if err != nil {
-		return fastBillResponse, err
-	}
+	req, _ := http.NewRequest("POST", baseURL, bytes.NewBuffer(requestJSON))
 
 	req.Header.Add("Content-Type", "application/json")
 

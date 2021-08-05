@@ -82,6 +82,30 @@ func TestDoWithNoBodyErrorRequest(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestDoWithInvalidRequestRequest(t *testing.T) {
+	mockClient := MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			fastBillResponse := response.Response{
+				Request:  nil,
+				Response: nil,
+			}
+
+			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
+
+			return &http.Response{
+				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+			}, nil
+		},
+	}
+
+	client := NewServiceWithClient("foo", "bar", &mockClient)
+
+	req := request.NewRequestWithData("foo.bar", nil)
+	req.Filter = make(chan int)
+	_, err := client.DoRequest(req)
+	assert.Error(t, err)
+}
+
 func TestDoWithFastBillErrorRequest(t *testing.T) {
 	mockClient := MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
