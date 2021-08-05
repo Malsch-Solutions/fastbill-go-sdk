@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/response"
+	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
+	"github.com/malsch-solutions/fastbill-go-sdk/modules/response"
+	"github.com/malsch-solutions/fastbill-go-sdk/pkg/request"
 	"github.com/stretchr/testify/assert"
 )
 

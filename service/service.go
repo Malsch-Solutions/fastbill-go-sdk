@@ -11,8 +11,8 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/response"
+	"github.com/malsch-solutions/fastbill-go-sdk/modules/response"
+	"github.com/malsch-solutions/fastbill-go-sdk/pkg/request"
 )
 
 const baseURL string = "https://my.fastbill.com/api/1.0/api.php"

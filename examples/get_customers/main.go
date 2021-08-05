@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/customer"
-	"github.com/malsch-solutions/fastbill-go-sdk/parameter"
+	"github.com/malsch-solutions/fastbill-go-sdk/modules/customer"
+	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
 	"github.com/malsch-solutions/fastbill-go-sdk/service"
 )
 

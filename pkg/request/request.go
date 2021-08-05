@@ -1,6 +1,6 @@
 package request
 
-import "github.com/malsch-solutions/fastbill-go-sdk/parameter"
+import "github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
 
 //Request fastbill api request
 type Request struct {
