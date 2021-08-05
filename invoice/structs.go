@@ -29,7 +29,7 @@ type Invoice struct {
 	InvoiceTitle         string    `json:"INVOICE_TITLE,omitempty" mapstructure:"INVOICE_TITLE"`
 	CashDiscountPercent  string    `json:"CASH_DISCOUNT_PERCENT,omitempty" mapstructure:"CASH_DISCOUNT_PERCENT"`
 	CashDiscountDays     string    `json:"CASH_DISCOUNT_DAYS,omitempty" mapstructure:"CASH_DISCOUNT_DAYS"`
-	SubTotal             int       `json:"SUB_TOTAL,omitempty" mapstructure:"SUB_TOTAL"`
+	SubTotal             float64   `json:"SUB_TOTAL,omitempty" mapstructure:"SUB_TOTAL"`
 	VatTotal             float64   `json:"VAT_TOTAL,omitempty" mapstructure:"VAT_TOTAL"`
 	VatCase              string    `json:"VAT_CASE,omitempty" mapstructure:"VAT_CASE"`
 	VatItems             []VatItem `json:"VAT_ITEMS,omitempty" mapstructure:"VAT_ITEMS"`
@@ -97,7 +97,7 @@ type Item struct {
 	ArticleNumber string        `json:"ARTICLE_NUMBER,omitempty" mapstructure:"ARTICLE_NUMBER"`
 	Description   string        `json:"DESCRIPTION,omitempty" mapstructure:"DESCRIPTION"`
 	Quantity      int           `json:"QUANTITY,omitempty" mapstructure:"QUANTITY"`
-	UnitPrice     int           `json:"UNIT_PRICE,omitempty" mapstructure:"UNIT_PRICE"`
+	UnitPrice     float64       `json:"UNIT_PRICE,omitempty" mapstructure:"UNIT_PRICE"`
 	VatPercent    int           `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
 	VatValue      float64       `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
 	CompleteNet   int           `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
@@ -119,7 +119,7 @@ type Payment struct {
 //VatItem invoice vat item
 type VatItem struct {
 	VatPercent  int     `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
-	CompleteNet int     `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
+	CompleteNet float64 `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
 	VatValue    float64 `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
 }
 
