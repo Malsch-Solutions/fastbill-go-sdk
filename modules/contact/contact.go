@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/pkg/request"
+	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
 	"github.com/malsch-solutions/fastbill-go-sdk/service"
 	"github.com/mitchellh/mapstructure"
 )

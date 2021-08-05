@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
 	"github.com/malsch-solutions/fastbill-go-sdk/modules/response"
-	"github.com/malsch-solutions/fastbill-go-sdk/pkg/request"
 	"github.com/stretchr/testify/assert"
 )
 
