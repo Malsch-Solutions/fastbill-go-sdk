@@ -1,8 +1,9 @@
-package item
+package document
 
 import (
 	"errors"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
@@ -16,17 +17,16 @@ type dummyService struct {
 
 func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Response, error) {
 
-	if fastBillRequest.Service == "item.get" {
+	if fastBillRequest.Service == "document.get" {
 		return response.Response{
-			Response: getResponse{Items: []Item{
-				{},
-			}},
-		}, nil
-	}
-
-	if fastBillRequest.Service == "item.delete" {
-		return response.Response{
-			Response: deleteResponse{Status: "success"},
+			Response: Response{
+				Documents: []Document{
+					{},
+				},
+				Folders: map[string]Folder{
+					"1": {},
+				},
+			},
 		}, nil
 	}
 
@@ -34,27 +34,36 @@ func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Resp
 }
 
 func (c *dummyService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
+	if fastBillRequest.Service == "document.create" {
+		return response.Response{
+			Response: CreateResponse{DocumentID: 1, Status: "success"},
+		}, nil
+	}
+
 	return response.Response{}, errors.New("unknown service")
 }
 
-func TestNewItemClient(t *testing.T) {
-	client := NewItemClient(&dummyService{})
+func TestNewDocumentClient(t *testing.T) {
+	client := NewDocumentClient(&dummyService{})
 	assert.IsType(t, &Client{}, client)
 }
 
-func TestItemClientGet(t *testing.T) {
-	client := NewItemClient(&dummyService{})
+func TestDocumentClientGet(t *testing.T) {
+	client := NewDocumentClient(&dummyService{})
 	resp, err := client.Get(&parameter.Parameter{}, nil)
 	assert.NoError(t, err)
-	assert.IsType(t, []Item{}, resp)
-	assert.Len(t, resp, 1)
+	assert.IsType(t, Response{}, resp)
 }
 
-func TestItemClientDelete(t *testing.T) {
-	client := NewItemClient(&dummyService{})
-	resp, err := client.Delete("1337")
+func TestDocumentClientCreate(t *testing.T) {
+	client := NewDocumentClient(&dummyService{})
+
+	resp, err := client.Create(&Document{}, strings.NewReader(""), "file.txt")
+
 	assert.NoError(t, err)
-	assert.True(t, resp)
+	assert.IsType(t, CreateResponse{}, resp)
+	assert.NotEmpty(t, resp.DocumentID)
+	assert.Equal(t, resp.Status, "success")
 }
 
 type dummyErrorService struct {
@@ -68,15 +77,15 @@ func (c *dummyErrorService) DoMultiPartRequest(fastBillRequest request.Request, 
 	return response.Response{}, errors.New("unknown service")
 }
 
-func TestItemErrorClientGet(t *testing.T) {
-	client := NewItemClient(&dummyErrorService{})
+func TestDocumentErrorClientGet(t *testing.T) {
+	client := NewDocumentClient(&dummyErrorService{})
 	_, err := client.Get(&parameter.Parameter{}, nil)
 	assert.Error(t, err)
 }
 
-func TestCustomerErrorClientDelete(t *testing.T) {
-	client := NewItemClient(&dummyErrorService{})
-	_, err := client.Delete("1337")
+func TestDocumentErrorClientCreate(t *testing.T) {
+	client := NewDocumentClient(&dummyErrorService{})
+	_, err := client.Create(&Document{}, strings.NewReader(""), "file.txt")
 	assert.Error(t, err)
 }
 
@@ -90,17 +99,19 @@ func (c *dummyWrongStructService) DoRequest(_ request.Request) (response.Respons
 }
 
 func (c *dummyWrongStructService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
+	return response.Response{
+		Response: true,
+	}, nil
 }
 
-func TestItemWrongStructClientGet(t *testing.T) {
-	client := NewItemClient(&dummyWrongStructService{})
+func TestDocumentWrongStructClientGet(t *testing.T) {
+	client := NewDocumentClient(&dummyWrongStructService{})
 	_, err := client.Get(&parameter.Parameter{}, nil)
 	assert.Error(t, err)
 }
 
-func TestItemWrongStructClientDelete(t *testing.T) {
-	client := NewItemClient(&dummyWrongStructService{})
-	_, err := client.Delete("1337")
+func TestDocumentWrongStructClientCreate(t *testing.T) {
+	client := NewDocumentClient(&dummyWrongStructService{})
+	_, err := client.Create(&Document{}, strings.NewReader(""), "file.txt")
 	assert.Error(t, err)
 }

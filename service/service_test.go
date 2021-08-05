@@ -141,3 +141,95 @@ func TestDoWithClientErrorRequest(t *testing.T) {
 	_, err := client.DoRequest(request.NewRequestWithData("foo.bar", nil))
 	assert.Error(t, err)
 }
+
+func TestDoMultipartWithInvalidRequestRequest(t *testing.T) {
+	mockClient := MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			fastBillResponse := response.Response{
+				Request:  nil,
+				Response: nil,
+			}
+
+			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
+
+			return &http.Response{
+				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+			}, nil
+		},
+	}
+
+	client := NewServiceWithClient("foo", "bar", &mockClient)
+
+	req := request.NewRequestWithData("foo.bar", nil)
+	req.Filter = make(chan int)
+	_, err := client.DoMultiPartRequest(req, strings.NewReader(""), "file.txt")
+	assert.Error(t, err)
+}
+
+func TestDoMultiPartRequest(t *testing.T) {
+	mockClient := MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+
+			assert.Equal(t, "multipart/form-data; boundary=AaB03x", req.Header.Get("Content-Type"))
+			assert.Equal(t, "POST", req.Method)
+
+			defer func() {
+				if err := req.Body.Close(); err != nil {
+					log.Println(err)
+				}
+			}()
+
+			fastBillResponse := response.Response{
+				Request:  nil,
+				Response: nil,
+			}
+
+			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
+
+			return &http.Response{
+				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+			}, nil
+		},
+	}
+
+	client := NewServiceWithClient("foo", "bar", &mockClient)
+	_, err := client.DoMultiPartRequest(request.NewRequestWithData("foo.bar", nil), strings.NewReader(""), "file.txt")
+	assert.NoError(t, err)
+}
+
+func TestDoMultipartWithFastBillErrorRequest(t *testing.T) {
+	mockClient := MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			fastBillResponse := response.Response{
+				Request: nil,
+				Response: response.ErrorResponse{
+					Errors: []string{
+						"error",
+					},
+				},
+			}
+
+			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
+
+			return &http.Response{
+				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+			}, nil
+		},
+	}
+
+	client := NewServiceWithClient("foo", "bar", &mockClient)
+	_, err := client.DoMultiPartRequest(request.NewRequestWithData("foo.bar", nil), strings.NewReader(""), "file.txt")
+	assert.Error(t, err)
+}
+
+func TestDoMultipartWithClientErrorRequest(t *testing.T) {
+	mockClient := MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			return &http.Response{}, errors.New("my awesome client error")
+		},
+	}
+
+	client := NewServiceWithClient("foo", "bar", &mockClient)
+	_, err := client.DoMultiPartRequest(request.NewRequestWithData("foo.bar", nil), strings.NewReader(""), "file.txt")
+	assert.Error(t, err)
+}
