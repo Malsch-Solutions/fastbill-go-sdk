@@ -1,5 +1,6 @@
 # fastbill-go-sdk
 [![Checks](https://github.com/Malsch-Solutions/fastbill-go-sdk/actions/workflows/check.yml/badge.svg)](https://github.com/Malsch-Solutions/fastbill-go-sdk/actions/workflows/check.yml)
+[![CodeQL](https://github.com/Malsch-Solutions/fastbill-go-sdk/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Malsch-Solutions/fastbill-go-sdk/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/Malsch-Solutions/fastbill-go-sdk/branch/main/graph/badge.svg?token=NYMO09X0BU)](https://codecov.io/gh/Malsch-Solutions/fastbill-go-sdk)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Malsch-Solutions/fastbill-go-sdk)](https://goreportcard.com/report/github.com/Malsch-Solutions/fastbill-go-sdk)
 [![Go Reference](https://pkg.go.dev/badge/github.com/malsch-solutions/fastbill-go-sdk.svg)](https://pkg.go.dev/github.com/malsch-solutions/fastbill-go-sdk)
