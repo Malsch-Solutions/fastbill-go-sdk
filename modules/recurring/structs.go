@@ -104,7 +104,7 @@ type CreateResponse struct {
 
 //UpdateResponse recurring api response
 type UpdateResponse struct {
-	Status string `json:"STATUS,omitempty" mapstructure:"STATUS,omitempty" mapstructure:"INVOICE_ID"`
+	Status string `json:"STATUS,omitempty" mapstructure:"STATUS"`
 }
 
 type getResponse struct {
