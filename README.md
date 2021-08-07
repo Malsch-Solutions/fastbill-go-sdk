@@ -7,10 +7,10 @@
 
 golang sdk for the api of https://www.fastbill.com/
 
-> :warning: **Work in progress**: This SDK is still in an very early state. It is not recommended for production use.
+> :warning: **Beta Release**: This SDK is still in an beta state. It is not recommended for production use.
 
 ## Usage
-Put the sdk package on your import statement
+Add the sdk package import statement
 
 ```golang
 import "github.com/malsch-solutions/fastbill-go-sdk"
