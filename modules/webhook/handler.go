@@ -1,4 +1,4 @@
-package webhook_handler
+package webhook
 
 import (
 	"encoding/json"
@@ -7,27 +7,30 @@ import (
 	"net/http"
 )
 
-//WebhookHandler service interface
-type WebhookHandler interface {
-	ValidateAndGetData() (WebhookData, error)
+//RequestHandler service interface
+type RequestHandler interface {
+	ValidateAndGetData() (Event, error)
 }
 
-func NewWebhookHandler(req http.Request) WebhookHandler {
-	h := &FastbillWebhookHandler{
+//NewWebhookRequestHandler create new handler which can handle fastbill webhook requests
+func NewWebhookRequestHandler(req http.Request) RequestHandler {
+	h := &FastbillWebhookRequestHandler{
 		req,
 	}
 
 	return h
 }
 
-type FastbillWebhookHandler struct {
+//FastbillWebhookRequestHandler can handle fastbill webhook http requests
+type FastbillWebhookRequestHandler struct {
 	request http.Request
 }
 
-func (h *FastbillWebhookHandler) ValidateAndGetData() (WebhookData, error) {
+//ValidateAndGetData validates the request and returns the event data
+func (h *FastbillWebhookRequestHandler) ValidateAndGetData() (Event, error) {
 	req := h.request
 
-	var data WebhookData
+	var data Event
 	if req.Method != "POST" {
 		return data, fmt.Errorf("invalid Request, wrong http method: got %s, expected post", req.Method)
 	}

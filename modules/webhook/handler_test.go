@@ -1,4 +1,4 @@
-package webhook_handler
+package webhook
 
 import (
 	"encoding/json"
@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type InvalidWebhookData struct {
+type invalidWebhookEvent struct {
 	ID       string             `json:"id"`
 	Type     string             `json:"type"`
 	Customer *customer.Customer `json:"customer"`
@@ -26,12 +26,12 @@ type InvalidWebhookData struct {
 }
 
 func TestNewHandler(t *testing.T) {
-	client := NewWebhookHandler(http.Request{})
-	assert.IsType(t, &FastbillWebhookHandler{}, client)
+	client := NewWebhookRequestHandler(http.Request{})
+	assert.IsType(t, &FastbillWebhookRequestHandler{}, client)
 }
 
 func getRequest() http.Request {
-	body := WebhookData{
+	body := Event{
 		ID: 1337,
 	}
 
@@ -47,10 +47,10 @@ func getRequest() http.Request {
 }
 
 func TestValidateValidRequest(t *testing.T) {
-	client := NewWebhookHandler(getRequest())
+	client := NewWebhookRequestHandler(getRequest())
 	data, err := client.ValidateAndGetData()
 
-	assert.IsType(t, WebhookData{}, data)
+	assert.IsType(t, Event{}, data)
 	assert.Equal(t, 1337, data.ID)
 	assert.NoError(t, err)
 }
@@ -58,7 +58,7 @@ func TestValidateValidRequest(t *testing.T) {
 func TestValidateInValidMethodRequest(t *testing.T) {
 	req := getRequest()
 	req.Method = "PUT"
-	client := NewWebhookHandler(req)
+	client := NewWebhookRequestHandler(req)
 	_, err := client.ValidateAndGetData()
 
 	assert.Error(t, err)
@@ -67,7 +67,7 @@ func TestValidateInValidMethodRequest(t *testing.T) {
 func TestValidateInValidUserAgentRequest(t *testing.T) {
 	req := getRequest()
 	req.Header.Set("User-Agent", "Wrong")
-	client := NewWebhookHandler(req)
+	client := NewWebhookRequestHandler(req)
 	_, err := client.ValidateAndGetData()
 
 	assert.Error(t, err)
@@ -76,7 +76,7 @@ func TestValidateInValidUserAgentRequest(t *testing.T) {
 func TestValidateInValidContentTypeRequest(t *testing.T) {
 	req := getRequest()
 	req.Header.Set("Content-Type", "application/xml")
-	client := NewWebhookHandler(req)
+	client := NewWebhookRequestHandler(req)
 	_, err := client.ValidateAndGetData()
 
 	assert.Error(t, err)
@@ -84,7 +84,7 @@ func TestValidateInValidContentTypeRequest(t *testing.T) {
 
 func TestValidateInValidBodyRequest(t *testing.T) {
 
-	body := InvalidWebhookData{
+	body := invalidWebhookEvent{
 		ID: "1337",
 	}
 
@@ -93,7 +93,7 @@ func TestValidateInValidBodyRequest(t *testing.T) {
 	JSONBody, _ := json.Marshal(body)
 	req.Body = ioutil.NopCloser(strings.NewReader(string(JSONBody)))
 
-	client := NewWebhookHandler(req)
+	client := NewWebhookRequestHandler(req)
 	_, err := client.ValidateAndGetData()
 
 	assert.Error(t, err)
