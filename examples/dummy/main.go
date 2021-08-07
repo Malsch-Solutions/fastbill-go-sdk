@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/malsch-solutions/fastbill-go-sdk/modules/article"
+
 	"github.com/malsch-solutions/fastbill-go-sdk/modules/recurring"
 
 	"github.com/malsch-solutions/fastbill-go-sdk/modules/document"
@@ -30,8 +32,10 @@ import (
 func main() {
 	fastbillService := service.NewService(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FASTBILL_API_KEY"))
 
-	customerClient := customer.NewCustomerClient(fastbillService)
+	handleArticle(fastbillService)
+	return
 
+	customerClient := customer.NewCustomerClient(fastbillService)
 	log.Println("Create Customer")
 	c, err := customerClient.Create(&customer.Customer{CustomerType: "consumer", FirstName: "foo", LastName: "bar 2"})
 	if err != nil {
@@ -346,4 +350,39 @@ func handleDocument(fastbillService service.Service) {
 
 	x, _ := json.Marshal(d)
 	log.Println(string(x))
+}
+
+func handleArticle(fastbillService service.Service) {
+	contactClient := article.NewArticleClient(fastbillService)
+
+	log.Println("Create Article")
+	c, err := contactClient.Create(&article.Article{ArticleNumber: "10", Title: "artikel", UnitPrice: "10.50", Unit: "Stück"})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Update Article")
+	_, err = contactClient.Update(&article.Article{ArticleID: strconv.Itoa(c.ArticleID), Description: "meine beschreibung"})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Get Article")
+	list, err := contactClient.Get(&parameter.Parameter{
+		Limit:  10,
+		Offset: 0,
+	}, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	customerJSON, _ := json.Marshal(list)
+	log.Println(string(customerJSON))
+	log.Println("Delete Article")
+	deleted, err := contactClient.Delete(strconv.Itoa(c.ArticleID))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println(deleted)
 }

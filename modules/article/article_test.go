@@ -32,7 +32,7 @@ func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Resp
 
 	if fastBillRequest.Service == "article.update" {
 		return response.Response{
-			Response: UpdateResponse{ArticleID: "10", Status: "success"},
+			Response: UpdateResponse{Status: "success"},
 		}, nil
 	}
 
