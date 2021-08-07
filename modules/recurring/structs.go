@@ -7,7 +7,7 @@ type Filter struct {
 
 //Recurring fastbill recurring invoice definition
 type Recurring struct {
-	InvoiceID            string    `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
+	InvoiceID            string    `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 	Type                 string    `json:"TYPE,omitempty" mapstructure:"TYPE"`
 	CustomerID           string    `json:"CUSTOMER_ID,omitempty" mapstructure:"CUSTOMER_ID"`
 	CustomerNumber       string    `json:"CUSTOMER_NUMBER,omitempty" mapstructure:"CUSTOMER_NUMBER"`
@@ -54,7 +54,7 @@ type Recurring struct {
 
 //Request fastbill recurring invoice definition
 type Request struct {
-	InvoiceID            string `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
+	InvoiceID            string `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 	DeleteExistingItems  int    `json:"DELETE_EXISTING_ITEMS,omitempty" mapstructure:"DELETE_EXISTING_ITEMS"`
 	CustomerID           string `json:"CUSTOMER_ID,omitempty" mapstructure:"CUSTOMER_ID"`
 	CustomerCostCenterID string `json:"CUSTOMER_COSTCENTER_ID,omitempty" mapstructure:"CUSTOMER_COSTCENTER_ID"`
@@ -98,8 +98,8 @@ type Item struct {
 
 //CreateResponse recurring api response
 type CreateResponse struct {
-	Status    string `json:"STATUS,omitempty" mapstructure:"STATUS,omitempty" mapstructure:"INVOICE_ID"`
-	InvoiceID int    `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
+	Status    string `json:"STATUS,omitempty" mapstructure:"STATUS"`
+	InvoiceID int    `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 }
 
 //UpdateResponse recurring api response
@@ -116,5 +116,5 @@ type deleteRequest struct {
 }
 
 type deleteResponse struct {
-	Status string `json:"STATUS,omitempty" mapstructure:"STATUS,omitempty" mapstructure:"INVOICE_ID"`
+	Status string `json:"STATUS,omitempty" mapstructure:"STATUS"`
 }
