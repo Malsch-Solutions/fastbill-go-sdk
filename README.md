@@ -39,11 +39,11 @@ customers, err := customerClient.Get(&parameter.Parameter{
 - [x] Invoices
 - [x] Items
 - [x] Recurring invoices
-- [ ] Revenues
+- [x] Revenues
 - [x] Expenses
 - [x] Products (article)
-- [ ] Projects
-- [ ] Work times
+- [x] Projects
+- [x] Work times (time)
 - [x] Documents
 - [x] Templates
 - [x] Webhooks
