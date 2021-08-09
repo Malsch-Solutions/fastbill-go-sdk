@@ -7,8 +7,6 @@
 
 golang sdk for the api of https://www.fastbill.com/
 
-> :warning: **Beta Release**: This SDK is still in an beta state. It is not recommended for production use.
-
 ## Usage
 Add the sdk package import statement
 
