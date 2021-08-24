@@ -4,15 +4,15 @@ import "time"
 
 //Filter available invoice filter
 type Filter struct {
-	InvoiceID     string    `json:"INVOICE_ID"`     // Invoice ID
-	InvoiceNumber string    `json:"INVOICE_NUMBER"` // Invoice number
-	InvoiceTitle  string    `json:"INVOICE_TITLE"`  // Invoice title
-	CustomerID    string    `json:"CUSTOMER_ID"`    // A specific customer ID
-	Month         int       `json:"MONTH"`          // Month
-	Year          int       `json:"YEAR"`           // Year
-	StartDueDate  time.Time `json:"START_DUE_DATE"` // Invoices that are due from a specific date
-	EndDueDate    time.Time `json:"END_DUE_DATE"`   // Invoices that are due up to a specific date
-	Type          string    `json:"TYPE"`           // Payment type
+	InvoiceID     string    `json:"INVOICE_ID,omitempty"`     // Invoice ID
+	InvoiceNumber string    `json:"INVOICE_NUMBER,omitempty"` // Invoice number
+	InvoiceTitle  string    `json:"INVOICE_TITLE,omitempty"`  // Invoice title
+	CustomerID    string    `json:"CUSTOMER_ID,omitempty"`    // A specific customer ID
+	Month         int       `json:"MONTH,omitempty"`          // Month
+	Year          int       `json:"YEAR,omitempty"`           // Year
+	StartDueDate  time.Time `json:"START_DUE_DATE,omitempty"` // Invoices that are due from a specific date
+	EndDueDate    time.Time `json:"END_DUE_DATE,omitempty"`   // Invoices that are due up to a specific date
+	Type          string    `json:"TYPE,omitempty"`           // Payment type
 }
 
 //Invoice fastbill invoice
