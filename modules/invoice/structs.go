@@ -10,8 +10,8 @@ type Filter struct {
 	CustomerID    string    `json:"CUSTOMER_ID,omitempty"`    // A specific customer ID
 	Month         int       `json:"MONTH,omitempty"`          // Month
 	Year          int       `json:"YEAR,omitempty"`           // Year
-	StartDueDate  time.Time `json:"START_DUE_DATE,omitempty"` // Invoices that are due from a specific date
-	EndDueDate    time.Time `json:"END_DUE_DATE,omitempty"`   // Invoices that are due up to a specific date
+	StartDueDate  *time.Time `json:"START_DUE_DATE,omitempty"` // Invoices that are due from a specific date
+	EndDueDate    *time.Time `json:"END_DUE_DATE,omitempty"`   // Invoices that are due up to a specific date
 	Type          string    `json:"TYPE,omitempty"`           // Payment type
 }
 
