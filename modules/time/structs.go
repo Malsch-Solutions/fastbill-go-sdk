@@ -2,13 +2,13 @@ package time
 
 //Filter available time filter
 type Filter struct {
-	CustomerID string `json:"CUSTOMER_ID"`
-	ProjectID  string `json:"PROJECT_ID"`
-	TaskID     string `json:"TASK_ID"`
-	TimeID     string `json:"TIME_ID"`
-	StartDate  string `json:"START_DATE"`
-	EndDate    string `json:"END_DATE"`
-	Date       string `json:"DATE"`
+	CustomerID string `json:"CUSTOMER_ID,omitempty"`
+	ProjectID  string `json:"PROJECT_ID,omitempty"`
+	TaskID     string `json:"TASK_ID,omitempty"`
+	TimeID     string `json:"TIME_ID,omitempty"`
+	StartDate  string `json:"START_DATE,omitempty"`
+	EndDate    string `json:"END_DATE,omitempty"`
+	Date       string `json:"DATE,omitempty"`
 }
 
 //Time fastbill time

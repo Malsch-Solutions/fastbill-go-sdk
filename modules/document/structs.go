@@ -2,7 +2,7 @@ package document
 
 //Filter available invoice filter
 type Filter struct {
-	FolderID string `json:"FOLDER_ID"` // Folder ID
+	FolderID string `json:"FOLDER_ID,omitempty"` // Folder ID
 }
 
 //Folder fastbill document folder

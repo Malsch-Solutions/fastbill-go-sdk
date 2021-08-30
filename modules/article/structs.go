@@ -2,7 +2,7 @@ package article
 
 //Filter available article filter
 type Filter struct {
-	ArticleNumber string `json:"ARTICLE_NUMBER"` //Assigned article number
+	ArticleNumber string `json:"ARTICLE_NUMBER,omitempty"` //Assigned article number
 }
 
 //Article fastbill article definition

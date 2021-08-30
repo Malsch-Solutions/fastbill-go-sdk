@@ -2,11 +2,11 @@ package estimate
 
 //Filter available invoice filter
 type Filter struct {
-	CustomerID        string `json:"CUSTOMER_ID"`         // Customer ID
-	EstimateID        string `json:"ESTIMATE_ID"`         // Estimate ID
-	EstimateNumber    string `json:"ESTIMATE_NUMBER"`     // Estimate number
-	StartEstimateDate string `json:"START_ESTIMATE_DATE"` // EEstimates from a specific date
-	EndEstimateDate   string `json:"END_ESTIMATE_DATE"`   //Estimates until a specific date
+	CustomerID        string `json:"CUSTOMER_ID,omitempty"`         // Customer ID
+	EstimateID        string `json:"ESTIMATE_ID,omitempty"`         // Estimate ID
+	EstimateNumber    string `json:"ESTIMATE_NUMBER,omitempty"`     // Estimate number
+	StartEstimateDate string `json:"START_ESTIMATE_DATE,omitempty"` // Estimates from a specific date
+	EndEstimateDate   string `json:"END_ESTIMATE_DATE,omitempty"`   //Estimates until a specific date
 }
 
 //Estimate fastbill estimate

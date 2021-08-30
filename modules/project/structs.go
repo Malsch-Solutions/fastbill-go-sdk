@@ -2,8 +2,8 @@ package project
 
 //Filter available project filter
 type Filter struct {
-	ProjectID  string `json:"PROJECT_ID"`  //project id
-	CustomerID string `json:"CUSTOMER_ID"` //customer id
+	ProjectID  string `json:"PROJECT_ID,omitempty"`  //project id
+	CustomerID string `json:"CUSTOMER_ID,omitempty"` //customer id
 }
 
 //Project fastbill project definition
