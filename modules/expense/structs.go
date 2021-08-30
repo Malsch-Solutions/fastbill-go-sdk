@@ -2,10 +2,10 @@ package expense
 
 //Filter available customer filter
 type Filter struct {
-	InvoiceID     string `json:"INVOICE_ID"`     //Invoice ID
-	InvoiceNumber string `json:"INVOICE_NUMBER"` //Invoice Number
-	Month         string `json:"MONTH"`          //Month
-	Year          string `json:"YEAR"`           //Year
+	InvoiceID     string `json:"INVOICE_ID,omitempty"`     //Invoice ID
+	InvoiceNumber string `json:"INVOICE_NUMBER,omitempty"` //Invoice Number
+	Month         string `json:"MONTH,omitempty"`          //Month
+	Year          string `json:"YEAR,omitempty"`           //Year
 }
 
 //Expense fastbill expense

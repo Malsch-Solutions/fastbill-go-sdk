@@ -4,15 +4,15 @@ import "time"
 
 //Filter available revenue filter
 type Filter struct {
-	RevenueID     string    `json:"REVENUE_ID"`     // Revenue ID
-	RevenueNumber string    `json:"REVENUE_NUMBER"` // Revenue number
-	RevenueTitle  string    `json:"REVENUE_TITLE"`  // Revenue title
-	CustomerID    string    `json:"CUSTOMER_ID"`    // A specific customer ID
-	Month         int       `json:"MONTH"`          // Month
-	Year          int       `json:"YEAR"`           // Year
-	StartDueDate  time.Time `json:"START_DUE_DATE"` // Revenues that are due from a specific date
-	EndDueDate    time.Time `json:"END_DUE_DATE"`   // Revenues that are due up to a specific date
-	Type          string    `json:"TYPE"`           // Payment type
+	RevenueID     string     `json:"REVENUE_ID,omitempty"`     // Revenue ID
+	RevenueNumber string     `json:"REVENUE_NUMBER,omitempty"` // Revenue number
+	RevenueTitle  string     `json:"REVENUE_TITLE,omitempty"`  // Revenue title
+	CustomerID    string     `json:"CUSTOMER_ID,omitempty"`    // A specific customer ID
+	Month         int        `json:"MONTH,omitempty"`          // Month
+	Year          int        `json:"YEAR,omitempty"`           // Year
+	StartDueDate  *time.Time `json:"START_DUE_DATE,omitempty"` // Revenues that are due from a specific date
+	EndDueDate    *time.Time `json:"END_DUE_DATE,omitempty"`   // Revenues that are due up to a specific date
+	Type          string     `json:"TYPE,omitempty"`           // Payment type
 }
 
 //Revenue fastbill revenue

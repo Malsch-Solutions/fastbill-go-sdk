@@ -2,11 +2,11 @@ package customer
 
 //Filter available customer filter
 type Filter struct {
-	CustomerID     string `json:"CUSTOMER_ID"`     //A specific customer ID
-	CustomerNumber string `json:"CUSTOMER_NUMBER"` //Assigned customer number
-	CountryCode    string `json:"COUNTRY_CODE"`    //A country (ISO 3166 ALPHA-2)
-	City           string `json:"CITY"`            //City
-	Term           string `json:"TERM"`            //Search term in one of the given fields: ORGANIZATION, FIRST_NAME, LAST_NAME, ADDRESS, ADDRESS_2, ZIPCODE, EMAIL, TAGS.
+	CustomerID     string `json:"CUSTOMER_ID,omitempty"`     //A specific customer ID
+	CustomerNumber string `json:"CUSTOMER_NUMBER,omitempty"` //Assigned customer number
+	CountryCode    string `json:"COUNTRY_CODE,omitempty"`    //A country (ISO 3166 ALPHA-2)
+	City           string `json:"CITY,omitempty"`            //City
+	Term           string `json:"TERM,omitempty"`            //Search term in one of the given fields: ORGANIZATION, FIRST_NAME, LAST_NAME, ADDRESS, ADDRESS_2, ZIPCODE, EMAIL, TAGS.
 }
 
 //Customer fastbill customer definition

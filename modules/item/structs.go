@@ -2,7 +2,7 @@ package item
 
 //Filter available  filter
 type Filter struct {
-	InvoiceID int `json:"INVOICE_ID"` //A specific invoice ID
+	InvoiceID int `json:"INVOICE_ID,omitempty"` //A specific invoice ID
 }
 
 //Item fastbill item definition

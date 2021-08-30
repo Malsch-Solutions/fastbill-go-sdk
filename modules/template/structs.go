@@ -2,10 +2,10 @@ package template
 
 //Filter available customer filter
 type Filter struct {
-	ContactID      string `json:"CONTACT_ID"`      //A specific contact ID
-	CustomerID     string `json:"CUSTOMER_ID"`     //A specific customer ID
-	CustomerNumber string `json:"CUSTOMER_NUMBER"` //Assigned customer number
-	Term           string `json:"TERM"`            //Search term in one of the given fields: ORGANIZATION, FIRST_NAME, LAST_NAME, ADDRESS, ADDRESS_2, ZIPCODE, EMAIL, TAGS.
+	ContactID      string `json:"CONTACT_ID,omitempty"`      //A specific contact ID
+	CustomerID     string `json:"CUSTOMER_ID,omitempty"`     //A specific customer ID
+	CustomerNumber string `json:"CUSTOMER_NUMBER,omitempty"` //Assigned customer number
+	Term           string `json:"TERM,omitempty"`            //Search term in one of the given fields: ORGANIZATION, FIRST_NAME, LAST_NAME, ADDRESS, ADDRESS_2, ZIPCODE, EMAIL, TAGS.
 }
 
 //Template fastbill template
