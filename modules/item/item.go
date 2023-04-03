@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all item api services
+// Client includes all item api services
 type Client struct {
 	client service.Service
 }
 
-//NewItemClient creates a new item api client
+// NewItemClient creates a new item api client
 func NewItemClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all items restricted by the given filters
+// Get get all items restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Item, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("item.get", parameter, filter)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Item, er
 	return itemResponse.Items, nil
 }
 
-//Delete delete a item
+// Delete delete a item
 func (c *Client) Delete(itemID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("item.delete", deleteRequest{InvoiceItemID: itemID})
 	res, err := c.client.DoRequest(fastBillRequest)

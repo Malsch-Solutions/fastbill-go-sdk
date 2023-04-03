@@ -1,6 +1,6 @@
 package estimate
 
-//Filter available invoice filter
+// Filter available invoice filter
 type Filter struct {
 	CustomerID        string `json:"CUSTOMER_ID,omitempty"`         // Customer ID
 	EstimateID        string `json:"ESTIMATE_ID,omitempty"`         // Estimate ID
@@ -9,7 +9,7 @@ type Filter struct {
 	EndEstimateDate   string `json:"END_ESTIMATE_DATE,omitempty"`   //Estimates until a specific date
 }
 
-//Estimate fastbill estimate
+// Estimate fastbill estimate
 type Estimate struct {
 	EstimateID           string    `json:"ESTIMATE_ID" mapstructure:"ESTIMATE_ID"`
 	State                string    `json:"STATE" mapstructure:"STATE"`
@@ -49,7 +49,7 @@ type Estimate struct {
 	DocumentURL          string    `json:"DOCUMENT_URL" mapstructure:"DOCUMENT_URL"`
 }
 
-//Request fastbill estimate request
+// Request fastbill estimate request
 type Request struct {
 	CustomerID           string `json:"CUSTOMER_ID,omitempty" mapstructure:"CUSTOMER_ID"`
 	CustomerCostCenterID string `json:"CUSTOMER_COSTCENTER_ID,omitempty" mapstructure:"CUSTOMER_COSTCENTER_ID"`
@@ -58,7 +58,7 @@ type Request struct {
 	Items                []Item `json:"ITEMS,omitempty" mapstructure:"ITEMS"`
 }
 
-//VatItem invoice vat item
+// VatItem invoice vat item
 type VatItem struct {
 	VatPercent  string  `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
 	CompleteNet float64 `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
@@ -80,7 +80,7 @@ type Item struct {
 	SortOrder      int           `json:"SORT_ORDER,omitempty" mapstructure:"SORT_ORDER"`
 }
 
-//CreateResponse invoice api response
+// CreateResponse invoice api response
 type CreateResponse struct {
 	Status     string `json:"STATUS" mapstructure:"STATUS"`
 	EstimateID int    `json:"ESTIMATE_ID" mapstructure:"ESTIMATE_ID"`
@@ -90,7 +90,7 @@ type createInvoiceRequest struct {
 	EstimateID string `json:"ESTIMATE_ID" mapstructure:"ESTIMATE_ID"`
 }
 
-//CreateInvoiceResponse invoice api response
+// CreateInvoiceResponse invoice api response
 type CreateInvoiceResponse struct {
 	InvoiceID int `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`
 }
@@ -107,7 +107,7 @@ type deleteResponse struct {
 	Status string `json:"STATUS" mapstructure:"STATUS"`
 }
 
-//SendByMailRequest send by mail api request
+// SendByMailRequest send by mail api request
 type SendByMailRequest struct {
 	EstimateID          string               `json:"ESTIMATE_ID,omitempty" mapstructure:"ESTIMATE_ID"`
 	Recipient           SendByMailRecipients `json:"RECIPIENT,omitempty" mapstructure:"RECIPIENT"`
@@ -116,7 +116,7 @@ type SendByMailRequest struct {
 	ReceiptConfirmation string               `json:"RECEIPT_CONFIRMATION,omitempty" mapstructure:"RECEIPT_CONFIRMATION"`
 }
 
-//SendByMailRecipients recipient of the mail
+// SendByMailRecipients recipient of the mail
 type SendByMailRecipients struct {
 	To  string `json:"TO,omitempty" mapstructure:"TO"`
 	Cc  string `json:"CC,omitempty" mapstructure:"CC"`

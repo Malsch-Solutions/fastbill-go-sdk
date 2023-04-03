@@ -1,6 +1,6 @@
 package customer
 
-//Filter available customer filter
+// Filter available customer filter
 type Filter struct {
 	CustomerID     string `json:"CUSTOMER_ID,omitempty"`     //A specific customer ID
 	CustomerNumber string `json:"CUSTOMER_NUMBER,omitempty"` //Assigned customer number
@@ -9,7 +9,7 @@ type Filter struct {
 	Term           string `json:"TERM,omitempty"`            //Search term in one of the given fields: ORGANIZATION, FIRST_NAME, LAST_NAME, ADDRESS, ADDRESS_2, ZIPCODE, EMAIL, TAGS.
 }
 
-//Customer fastbill customer definition
+// Customer fastbill customer definition
 type Customer struct {
 	CustomerID                  string `json:"CUSTOMER_ID,omitempty" mapstructure:"CUSTOMER_ID"`
 	CustomerNumber              string `json:"CUSTOMER_NUMBER,omitempty" mapstructure:"CUSTOMER_NUMBER"`
@@ -53,13 +53,13 @@ type Customer struct {
 	DocumentHistoryURL          string `json:"DOCUMENT_HISTORY_URL,omitempty" mapstructure:"DOCUMENT_HISTORY_URL"`
 }
 
-//CreateResponse customer api response
+// CreateResponse customer api response
 type CreateResponse struct {
 	Status     string `json:"STATUS" mapstructure:"STATUS"`
 	CustomerID int    `json:"CUSTOMER_ID" mapstructure:"CUSTOMER_ID"`
 }
 
-//UpdateResponse customer api response
+// UpdateResponse customer api response
 type UpdateResponse struct {
 	Status     string `json:"STATUS" mapstructure:"STATUS"`
 	CustomerID string `json:"CUSTOMER_ID" mapstructure:"CUSTOMER_ID"`

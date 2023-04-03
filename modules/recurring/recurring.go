@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all recurring api services
+// Client includes all recurring api services
 type Client struct {
 	client service.Service
 }
 
-//NewRecurringClient creates a new recurring api client
+// NewRecurringClient creates a new recurring api client
 func NewRecurringClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all recurrings restricted by the given filters
+// Get get all recurrings restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Recurring, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("recurring.get", parameter, filter)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Recurrin
 	return recurringResponse.Recurrings, nil
 }
 
-//Create create a recurring
+// Create create a recurring
 func (c *Client) Create(recurring *Request) (CreateResponse, error) {
 
 	var responseRecurring CreateResponse
@@ -59,7 +59,7 @@ func (c *Client) Create(recurring *Request) (CreateResponse, error) {
 	return responseRecurring, nil
 }
 
-//Update update a recurring
+// Update update a recurring
 func (c *Client) Update(recurring *Request) (UpdateResponse, error) {
 
 	var responseRecurring UpdateResponse
@@ -79,7 +79,7 @@ func (c *Client) Update(recurring *Request) (UpdateResponse, error) {
 	return responseRecurring, nil
 }
 
-//Delete delete a recurring
+// Delete delete a recurring
 func (c *Client) Delete(recurringID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("recurring.delete", deleteRequest{InvoiceID: recurringID})
 	res, err := c.client.DoRequest(fastBillRequest)

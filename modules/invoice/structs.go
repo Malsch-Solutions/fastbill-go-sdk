@@ -2,7 +2,7 @@ package invoice
 
 import "time"
 
-//Filter available invoice filter
+// Filter available invoice filter
 type Filter struct {
 	InvoiceID     string     `json:"INVOICE_ID,omitempty"`     // Invoice ID
 	InvoiceNumber string     `json:"INVOICE_NUMBER,omitempty"` // Invoice number
@@ -15,7 +15,7 @@ type Filter struct {
 	Type          string     `json:"TYPE,omitempty"`           // Payment type
 }
 
-//Invoice fastbill invoice
+// Invoice fastbill invoice
 type Invoice struct {
 	InvoiceID            string    `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 	Type                 string    `json:"TYPE,omitempty" mapstructure:"TYPE"`
@@ -68,7 +68,7 @@ type Invoice struct {
 	DocumentURL          string    `json:"DOCUMENT_URL,omitempty" mapstructure:"DOCUMENT_URL"`
 }
 
-//Request invoice create request
+// Request invoice create request
 type Request struct {
 	InvoiceID            string `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 	DeleteExistingItems  string `json:"DELETE_EXISTING_ITEMS,omitempty" mapstructure:"DELETE_EXISTING_ITEMS"`
@@ -97,6 +97,7 @@ type Item struct {
 	ArticleNumber string        `json:"ARTICLE_NUMBER,omitempty" mapstructure:"ARTICLE_NUMBER"`
 	Description   string        `json:"DESCRIPTION,omitempty" mapstructure:"DESCRIPTION"`
 	Quantity      int           `json:"QUANTITY,omitempty" mapstructure:"QUANTITY"`
+	Unit          string        `json:"UNIT,omitempty" mapstructure:"UNIT"`
 	UnitPrice     float64       `json:"UNIT_PRICE,omitempty" mapstructure:"UNIT_PRICE"`
 	VatPercent    int           `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
 	VatValue      float64       `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
@@ -116,20 +117,20 @@ type Payment struct {
 	Type         string `json:"TYPE,omitempty" mapstructure:"TYPE"`
 }
 
-//VatItem invoice vat item
+// VatItem invoice vat item
 type VatItem struct {
 	VatPercent  int     `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
 	CompleteNet float64 `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
 	VatValue    float64 `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
 }
 
-//CreateResponse invoice api response
+// CreateResponse invoice api response
 type CreateResponse struct {
 	Status    string `json:"STATUS" mapstructure:"STATUS"`
 	InvoiceID int    `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`
 }
 
-//UpdateResponse invoice api response
+// UpdateResponse invoice api response
 type UpdateResponse struct {
 	Status string `json:"STATUS" mapstructure:"STATUS"`
 }
@@ -138,20 +139,20 @@ type completeRequest struct {
 	InvoiceID string `json:"INVOICE_ID"`
 }
 
-//CompleteResponse invoice api response
+// CompleteResponse invoice api response
 type CompleteResponse struct {
 	Status    string `json:"STATUS" mapstructure:"STATUS"`
 	InvoiceID string `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`
 }
 
-//SetPaidRequest set paid api request
+// SetPaidRequest set paid api request
 type SetPaidRequest struct {
 	InvoiceID     string    `json:"INVOICE_ID,omitempty"`
 	PaidDate      time.Time `json:"PAID_DATE,omitempty"`
 	PaymentMethod string    `json:"PAYMENT_METHOD,omitempty"`
 }
 
-//SetPaidResponse invoice api response
+// SetPaidResponse invoice api response
 type SetPaidResponse struct {
 	Status        string `json:"STATUS" mapstructure:"STATUS"`
 	InvoiceNumber string `json:"INVOICE_NUMBER" mapstructure:"INVOICE_NUMBER"`
@@ -169,7 +170,7 @@ type deleteResponse struct {
 	Status string `json:"STATUS" mapstructure:"STATUS"`
 }
 
-//SendByMailRequest send by mail api request
+// SendByMailRequest send by mail api request
 type SendByMailRequest struct {
 	InvoiceID           string               `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 	Recipient           SendByMailRecipients `json:"RECIPIENT,omitempty" mapstructure:"RECIPIENT"`
@@ -178,7 +179,7 @@ type SendByMailRequest struct {
 	ReceiptConfirmation string               `json:"RECEIPT_CONFIRMATION,omitempty" mapstructure:"RECEIPT_CONFIRMATION"`
 }
 
-//SendByMailRecipients recipient of the mail
+// SendByMailRecipients recipient of the mail
 type SendByMailRecipients struct {
 	To  string `json:"TO,omitempty" mapstructure:"TO"`
 	Cc  string `json:"CC,omitempty" mapstructure:"CC"`

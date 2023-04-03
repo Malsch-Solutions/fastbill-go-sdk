@@ -1,6 +1,6 @@
 package parameter
 
-//Parameter generic request parameters
+// Parameter generic request parameters
 type Parameter struct {
 	Limit  int
 	Offset int

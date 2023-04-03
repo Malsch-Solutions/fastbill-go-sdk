@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all template api services
+// Client includes all template api services
 type Client struct {
 	client service.Service
 }
 
-//NewTemplateClient creates a new template api client
+// NewTemplateClient creates a new template api client
 func NewTemplateClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all templates restricted by the given filters
+// Get get all templates restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter) ([]Template, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("template.get", parameter, nil)

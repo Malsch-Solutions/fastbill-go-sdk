@@ -1,11 +1,11 @@
 package item
 
-//Filter available  filter
+// Filter available  filter
 type Filter struct {
 	InvoiceID int `json:"INVOICE_ID,omitempty"` //A specific invoice ID
 }
 
-//Item fastbill item definition
+// Item fastbill item definition
 type Item struct {
 	InvoiceItemID string  `json:"INVOICE_ITEM_ID" mapstructure:"INVOICE_ITEM_ID"`
 	InvoiceID     string  `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`

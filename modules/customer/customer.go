@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all customer api services
+// Client includes all customer api services
 type Client struct {
 	client service.Service
 }
 
-//NewCustomerClient creates a new customer api client
+// NewCustomerClient creates a new customer api client
 func NewCustomerClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all customers restricted by the given filters
+// Get get all customers restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Customer, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("customer.get", parameter, filter)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Customer
 	return customerResponse.Customers, nil
 }
 
-//Create create a customer
+// Create create a customer
 func (c *Client) Create(customer *Customer) (CreateResponse, error) {
 
 	var responseCustomer CreateResponse
@@ -59,7 +59,7 @@ func (c *Client) Create(customer *Customer) (CreateResponse, error) {
 	return responseCustomer, nil
 }
 
-//Update update a customer
+// Update update a customer
 func (c *Client) Update(customer *Customer) (UpdateResponse, error) {
 
 	var responseCustomer UpdateResponse
@@ -79,7 +79,7 @@ func (c *Client) Update(customer *Customer) (UpdateResponse, error) {
 	return responseCustomer, nil
 }
 
-//Delete delete a customer
+// Delete delete a customer
 func (c *Client) Delete(customerID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("customer.delete", deleteRequest{CustomerID: customerID})
 	res, err := c.client.DoRequest(fastBillRequest)

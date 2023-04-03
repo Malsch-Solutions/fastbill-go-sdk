@@ -2,7 +2,7 @@ package revenue
 
 import "time"
 
-//Filter available revenue filter
+// Filter available revenue filter
 type Filter struct {
 	RevenueID     string     `json:"REVENUE_ID,omitempty"`     // Revenue ID
 	RevenueNumber string     `json:"REVENUE_NUMBER,omitempty"` // Revenue number
@@ -15,7 +15,7 @@ type Filter struct {
 	Type          string     `json:"TYPE,omitempty"`           // Payment type
 }
 
-//Revenue fastbill revenue
+// Revenue fastbill revenue
 type Revenue struct {
 	InvoiceID            string    `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 	Type                 string    `json:"TYPE,omitempty" mapstructure:"TYPE"`
@@ -69,14 +69,14 @@ type Revenue struct {
 	Comments             []Comment `json:"COMMENTS" mapstructure:"COMMENTS"`
 }
 
-//Comment fastbill api expense comment
+// Comment fastbill api expense comment
 type Comment struct {
 	Date          string `json:"DATE,omitempty" mapstructure:"DATE"`
 	Comment       string `json:"COMMENT,omitempty" mapstructure:"COMMENT"`
 	CommentPublic string `json:"COMMENT_PUBLIC,omitempty" mapstructure:"COMMENT_PUBLIC"`
 }
 
-//Request revenue create request
+// Request revenue create request
 type Request struct {
 	InvoiceDate   string  `json:"INVOICE_DATE,omitempty" mapstructure:"INVOICE_DATE"`
 	DueDate       string  `json:"DUE_DATE,omitempty" mapstructure:"DUE_DATE"`
@@ -113,26 +113,26 @@ type Payment struct {
 	Type         string `json:"TYPE,omitempty" mapstructure:"TYPE"`
 }
 
-//VatItem revenue vat item
+// VatItem revenue vat item
 type VatItem struct {
 	VatPercent  int     `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
 	CompleteNet float64 `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
 	VatValue    float64 `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
 }
 
-//CreateResponse revenue api response
+// CreateResponse revenue api response
 type CreateResponse struct {
 	Status    string `json:"STATUS" mapstructure:"STATUS"`
 	InvoiceID int    `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`
 }
 
-//SetPaidRequest set paid api request
+// SetPaidRequest set paid api request
 type SetPaidRequest struct {
 	InvoiceID string    `json:"INVOICE_ID,omitempty"`
 	PaidDate  time.Time `json:"PAID_DATE,omitempty"`
 }
 
-//SetPaidResponse revenue api response
+// SetPaidResponse revenue api response
 type SetPaidResponse struct {
 	Status        string `json:"STATUS" mapstructure:"STATUS"`
 	InvoiceNumber string `json:"INVOICE_NUMBER" mapstructure:"INVOICE_NUMBER"`

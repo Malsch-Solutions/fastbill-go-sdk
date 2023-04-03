@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all article api services
+// Client includes all article api services
 type Client struct {
 	client service.Service
 }
 
-//NewArticleClient creates a new article api client
+// NewArticleClient creates a new article api client
 func NewArticleClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all articles restricted by the given filters
+// Get get all articles restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Article, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("article.get", parameter, filter)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Article,
 	return articleResponse.Articles, nil
 }
 
-//Create create a article
+// Create create a article
 func (c *Client) Create(article *Article) (CreateResponse, error) {
 
 	var responseArticle CreateResponse
@@ -59,7 +59,7 @@ func (c *Client) Create(article *Article) (CreateResponse, error) {
 	return responseArticle, nil
 }
 
-//Update update a article
+// Update update a article
 func (c *Client) Update(article *Article) (UpdateResponse, error) {
 
 	var responseArticle UpdateResponse
@@ -79,7 +79,7 @@ func (c *Client) Update(article *Article) (UpdateResponse, error) {
 	return responseArticle, nil
 }
 
-//Delete delete a article
+// Delete delete a article
 func (c *Client) Delete(articleID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("article.delete", deleteRequest{ArticleID: articleID})
 	res, err := c.client.DoRequest(fastBillRequest)

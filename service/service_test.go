@@ -3,7 +3,7 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -43,7 +43,7 @@ func TestDoRequest(t *testing.T) {
 				}
 			}()
 
-			body, _ := ioutil.ReadAll(req.Body)
+			body, _ := io.ReadAll(req.Body)
 
 			var fastBillRequest request.Request
 			err := json.Unmarshal(body, &fastBillRequest)
@@ -57,7 +57,7 @@ func TestDoRequest(t *testing.T) {
 			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
 
 			return &http.Response{
-				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+				Body: io.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
 			}, nil
 		},
 	}
@@ -71,7 +71,7 @@ func TestDoWithNoBodyErrorRequest(t *testing.T) {
 	mockClient := MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
-				Body: ioutil.NopCloser(strings.NewReader("")),
+				Body: io.NopCloser(strings.NewReader("")),
 			}, nil
 		},
 	}
@@ -92,7 +92,7 @@ func TestDoWithInvalidRequestRequest(t *testing.T) {
 			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
 
 			return &http.Response{
-				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+				Body: io.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
 			}, nil
 		},
 	}
@@ -120,7 +120,7 @@ func TestDoWithFastBillErrorRequest(t *testing.T) {
 			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
 
 			return &http.Response{
-				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+				Body: io.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
 			}, nil
 		},
 	}
@@ -153,7 +153,7 @@ func TestDoMultipartWithInvalidRequestRequest(t *testing.T) {
 			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
 
 			return &http.Response{
-				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+				Body: io.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
 			}, nil
 		},
 	}
@@ -187,7 +187,7 @@ func TestDoMultiPartRequest(t *testing.T) {
 			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
 
 			return &http.Response{
-				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+				Body: io.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
 			}, nil
 		},
 	}
@@ -212,7 +212,7 @@ func TestDoMultipartWithFastBillErrorRequest(t *testing.T) {
 			fastBillResponseJSON, _ := json.Marshal(fastBillResponse)
 
 			return &http.Response{
-				Body: ioutil.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
+				Body: io.NopCloser(strings.NewReader(string(fastBillResponseJSON))),
 			}, nil
 		},
 	}

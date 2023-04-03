@@ -1,6 +1,6 @@
 package contact
 
-//Filter available customer filter
+// Filter available customer filter
 type Filter struct {
 	ContactID      string `json:"CONTACT_ID,omitempty"`      //A specific contact ID
 	CustomerID     string `json:"CUSTOMER_ID,omitempty"`     //A specific customer ID
@@ -8,7 +8,7 @@ type Filter struct {
 	Term           string `json:"TERM,omitempty"`            //Search term in one of the given fields: ORGANIZATION, FIRST_NAME, LAST_NAME, ADDRESS, ADDRESS_2, ZIPCODE, EMAIL, TAGS.
 }
 
-//Contact fastbill contact
+// Contact fastbill contact
 type Contact struct {
 	ContactID        string `json:"CONTACT_ID,omitempty" mapstructure:"CONTACT_ID"`
 	CustomerID       string `json:"CUSTOMER_ID,omitempty" mapstructure:"CUSTOMER_ID"`
@@ -38,13 +38,13 @@ type Contact struct {
 	Tags             string `json:"TAGS,omitempty" mapstructure:"TAGS"`
 }
 
-//CreateResponse customer api response
+// CreateResponse customer api response
 type CreateResponse struct {
 	Status    string `json:"STATUS" mapstructure:"STATUS"`
 	ContactID int    `json:"CONTACT_ID" mapstructure:"CONTACT_ID"`
 }
 
-//UpdateResponse customer api response
+// UpdateResponse customer api response
 type UpdateResponse struct {
 	Status    string `json:"STATUS" mapstructure:"STATUS"`
 	ContactID string `json:"CONTACT_ID" mapstructure:"CONTACT_ID"`

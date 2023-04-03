@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all invoice api services
+// Client includes all invoice api services
 type Client struct {
 	client service.Service
 }
 
-//NewInvoiceClient creates a new invoice api client
+// NewInvoiceClient creates a new invoice api client
 func NewInvoiceClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all invoices restricted by the given filters
+// Get get all invoices restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Invoice, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("invoice.get", parameter, filter)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Invoice,
 	return invoiceResponse.Invoices, nil
 }
 
-//Create create a invoice
+// Create create a invoice
 func (c *Client) Create(invoice *Request) (CreateResponse, error) {
 
 	var responseInvoice CreateResponse
@@ -59,7 +59,7 @@ func (c *Client) Create(invoice *Request) (CreateResponse, error) {
 	return responseInvoice, nil
 }
 
-//Update update a invoice
+// Update update a invoice
 func (c *Client) Update(invoice *Request) (UpdateResponse, error) {
 
 	var responseInvoice UpdateResponse
@@ -79,7 +79,7 @@ func (c *Client) Update(invoice *Request) (UpdateResponse, error) {
 	return responseInvoice, nil
 }
 
-//Delete delete a invoice
+// Delete delete a invoice
 func (c *Client) Delete(invoiceID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("invoice.delete", deleteRequest{InvoiceID: invoiceID})
 	res, err := c.client.DoRequest(fastBillRequest)
@@ -98,7 +98,7 @@ func (c *Client) Delete(invoiceID string) (bool, error) {
 	return deleteRes.Status == "success", nil
 }
 
-//Cancel cancel an invoice
+// Cancel cancel an invoice
 func (c *Client) Cancel(invoiceID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("invoice.cancel", cancelRequest{InvoiceID: invoiceID})
 	res, err := c.client.DoRequest(fastBillRequest)
@@ -117,7 +117,7 @@ func (c *Client) Cancel(invoiceID string) (bool, error) {
 	return deleteRes.Status == "success", nil
 }
 
-//Complete complete a invoice
+// Complete complete a invoice
 func (c *Client) Complete(invoiceID string) (CompleteResponse, error) {
 	var completeResponse CompleteResponse
 	fastBillRequest := request.NewRequestWithData("invoice.complete", completeRequest{InvoiceID: invoiceID})
@@ -135,7 +135,7 @@ func (c *Client) Complete(invoiceID string) (CompleteResponse, error) {
 	return completeResponse, nil
 }
 
-//SendByEmail send an invoice by email
+// SendByEmail send an invoice by email
 func (c *Client) SendByEmail(sendByMailRequest *SendByMailRequest) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("invoice.sendbyemail", sendByMailRequest)
 	res, err := c.client.DoRequest(fastBillRequest)
@@ -154,7 +154,7 @@ func (c *Client) SendByEmail(sendByMailRequest *SendByMailRequest) (bool, error)
 	return sendByMailRes.Status == "success", nil
 }
 
-//SendByPost send an invoice by post
+// SendByPost send an invoice by post
 func (c *Client) SendByPost(invoiceID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("invoice.sendbypost", sendByPostRequest{InvoiceID: invoiceID})
 	res, err := c.client.DoRequest(fastBillRequest)
@@ -173,7 +173,7 @@ func (c *Client) SendByPost(invoiceID string) (bool, error) {
 	return sendByPostRes.Status == "success", nil
 }
 
-//SetPaid set an invoice paid
+// SetPaid set an invoice paid
 func (c *Client) SetPaid(setPaidRequest *SetPaidRequest) (SetPaidResponse, error) {
 
 	var setPaidResponse SetPaidResponse

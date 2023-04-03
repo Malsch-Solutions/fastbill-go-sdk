@@ -1,6 +1,6 @@
 package expense
 
-//Filter available customer filter
+// Filter available customer filter
 type Filter struct {
 	InvoiceID     string `json:"INVOICE_ID,omitempty"`     //Invoice ID
 	InvoiceNumber string `json:"INVOICE_NUMBER,omitempty"` //Invoice Number
@@ -8,7 +8,7 @@ type Filter struct {
 	Year          string `json:"YEAR,omitempty"`           //Year
 }
 
-//Expense fastbill expense
+// Expense fastbill expense
 type Expense struct {
 	InvoiceID          string      `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`
 	Organization       string      `json:"ORGANIZATION" mapstructure:"ORGANIZATION"`
@@ -32,21 +32,21 @@ type Expense struct {
 	ProjectID          string      `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
 }
 
-//Comment fastbill api expense comment
+// Comment fastbill api expense comment
 type Comment struct {
 	Date          string `json:"DATE,omitempty" mapstructure:"DATE"`
 	Comment       string `json:"COMMENT,omitempty" mapstructure:"COMMENT"`
 	CommentPublic string `json:"COMMENT_PUBLIC,omitempty" mapstructure:"COMMENT_PUBLIC"`
 }
 
-//VatItem fastbill api expense vat item
+// VatItem fastbill api expense vat item
 type VatItem struct {
 	VatPercent  int     `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
 	CompleteNet int     `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
 	VatValue    float64 `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
 }
 
-//Item fastbill api expense item
+// Item fastbill api expense item
 type Item struct {
 	InvoiceItemID int           `json:"INVOICE_ITEM_ID,omitempty" mapstructure:"INVOICE_ITEM_ID"`
 	ArticleNumber string        `json:"ARTICLE_NUMBER,omitempty" mapstructure:"ARTICLE_NUMBER"`
@@ -61,7 +61,7 @@ type Item struct {
 	SortOrder     int           `json:"SORT_ORDER,omitempty" mapstructure:"SORT_ORDER"`
 }
 
-//Request fastbill create expense request
+// Request fastbill create expense request
 type Request struct {
 	InvoiceDate        string  `json:"INVOICE_DATE,omitempty" mapstructure:"INVOICE_DATE"`
 	ServicePeriodStart string  `json:"SERVICE_PERIOD_START,omitempty" mapstructure:"SERVICE_PERIOD_START"`
@@ -81,7 +81,7 @@ type getResponse struct {
 	Expenses []Expense `json:"EXPENSES" mapstructure:"EXPENSES"`
 }
 
-//CreateResponse fastbill create response
+// CreateResponse fastbill create response
 type CreateResponse struct {
 	InvoiceID int    `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`
 	Status    string `json:"STATUS" mapstructure:"STATUS"`

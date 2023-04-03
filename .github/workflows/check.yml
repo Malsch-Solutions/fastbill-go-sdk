@@ -7,19 +7,19 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go: ['1.14', '1.15', '1.16', '1.17']
+        go: ['1.19', '1.20']
     steps:
       - name: Go ${{ matrix.go }} on ${{ matrix.os }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
       - name: Checkout source code
         uses: actions/checkout@v3
       - name: Setup
         run: |
-          go get -u golang.org/x/lint/golint
-          go get -u golang.org/x/tools/cmd/goimports
-          go get -u honnef.co/go/tools/cmd/staticcheck
+          go install golang.org/x/lint/golint@latest
+          go install golang.org/x/tools/cmd/goimports@latest
+          go install honnef.co/go/tools/cmd/staticcheck@latest
       - name: Run lint
         run: golint -set_exit_status $(go list ./... | grep -v /vendor/)
       - name: Run static check
@@ -34,6 +34,6 @@ jobs:
       - name: Run tests
         run: go test ./... -coverprofile=coverage.out -covermode=atomic
       - name: Upload coverage to Codecov
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.go == '1.16'}}
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.go == '1.20'}}
         run: bash <(curl -s https://codecov.io/bash)
 
