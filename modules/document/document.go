@@ -10,18 +10,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all document api services
+// Client includes all document api services
 type Client struct {
 	client service.Service
 }
 
-//NewDocumentClient creates a new document api client
+// NewDocumentClient creates a new document api client
 func NewDocumentClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all documents restricted by the given filters
+// Get get all documents restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) (Response, error) {
 	var documentResponse getResponse
 
@@ -40,7 +40,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) (Response, 
 	return documentResponse.Items, nil
 }
 
-//Create create a document
+// Create create a document
 func (c *Client) Create(document *Document, file io.Reader, fileName string) (CreateResponse, error) {
 
 	var responseDocument CreateResponse

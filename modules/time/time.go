@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all time api services
+// Client includes all time api services
 type Client struct {
 	client service.Service
 }
 
-//NewTimeClient creates a new time api client
+// NewTimeClient creates a new time api client
 func NewTimeClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all times restricted by the given filters
+// Get get all times restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Time, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("time.get", parameter, filter)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Time, er
 	return timeResponse.Times, nil
 }
 
-//Create create a time
+// Create create a time
 func (c *Client) Create(time *Time) (CreateResponse, error) {
 
 	var responseTime CreateResponse
@@ -59,7 +59,7 @@ func (c *Client) Create(time *Time) (CreateResponse, error) {
 	return responseTime, nil
 }
 
-//Update update a time
+// Update update a time
 func (c *Client) Update(time *Time) (UpdateResponse, error) {
 
 	var responseTime UpdateResponse
@@ -79,7 +79,7 @@ func (c *Client) Update(time *Time) (UpdateResponse, error) {
 	return responseTime, nil
 }
 
-//Delete delete a time
+// Delete delete a time
 func (c *Client) Delete(timeID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("time.delete", deleteRequest{TimeID: timeID})
 	res, err := c.client.DoRequest(fastBillRequest)

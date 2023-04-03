@@ -1,11 +1,11 @@
 package recurring
 
-//Filter available recurring filter
+// Filter available recurring filter
 type Filter struct {
 	InvoiceID string `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"` //A specific recurring ID}
 }
 
-//Recurring fastbill recurring invoice definition
+// Recurring fastbill recurring invoice definition
 type Recurring struct {
 	InvoiceID            string    `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 	Type                 string    `json:"TYPE,omitempty" mapstructure:"TYPE"`
@@ -52,7 +52,7 @@ type Recurring struct {
 	IntroText            string    `json:"INTROTEXT,omitempty" mapstructure:"INTROTEXT"`
 }
 
-//Request fastbill recurring invoice definition
+// Request fastbill recurring invoice definition
 type Request struct {
 	InvoiceID            string `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 	DeleteExistingItems  int    `json:"DELETE_EXISTING_ITEMS,omitempty" mapstructure:"DELETE_EXISTING_ITEMS"`
@@ -74,14 +74,14 @@ type Request struct {
 	Items                []Item `json:"ITEMS,omitempty" mapstructure:"ITEMS"`
 }
 
-//VatItem fastbill recurring vat item
+// VatItem fastbill recurring vat item
 type VatItem struct {
 	VatPercent  int     `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
 	CompleteNet float64 `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
 	VatValue    float64 `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
 }
 
-//Item fastbill recurring item
+// Item fastbill recurring item
 type Item struct {
 	InvoiceItemID int           `json:"INVOICE_ITEM_ID,omitempty" mapstructure:"INVOICE_ITEM_ID"`
 	ArticleNumber string        `json:"ARTICLE_NUMBER,omitempty" mapstructure:"ARTICLE_NUMBER"`
@@ -96,13 +96,13 @@ type Item struct {
 	SortOrder     int           `json:"SORT_ORDER,omitempty" mapstructure:"SORT_ORDER"`
 }
 
-//CreateResponse recurring api response
+// CreateResponse recurring api response
 type CreateResponse struct {
 	Status    string `json:"STATUS,omitempty" mapstructure:"STATUS"`
 	InvoiceID int    `json:"INVOICE_ID,omitempty" mapstructure:"INVOICE_ID"`
 }
 
-//UpdateResponse recurring api response
+// UpdateResponse recurring api response
 type UpdateResponse struct {
 	Status string `json:"STATUS,omitempty" mapstructure:"STATUS"`
 }

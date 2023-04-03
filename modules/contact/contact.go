@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all contact api services
+// Client includes all contact api services
 type Client struct {
 	client service.Service
 }
 
-//NewContactClient creates a new contact api client
+// NewContactClient creates a new contact api client
 func NewContactClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all contacts restricted by the given filters
+// Get get all contacts restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Contact, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("contact.get", parameter, filter)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Contact,
 	return contactResponse.Contacts, nil
 }
 
-//Create create a contact
+// Create create a contact
 func (c *Client) Create(contact *Contact) (CreateResponse, error) {
 
 	var responseContact CreateResponse
@@ -59,7 +59,7 @@ func (c *Client) Create(contact *Contact) (CreateResponse, error) {
 	return responseContact, nil
 }
 
-//Update update a contact
+// Update update a contact
 func (c *Client) Update(contact *Contact) (UpdateResponse, error) {
 
 	var responseContact UpdateResponse
@@ -79,7 +79,7 @@ func (c *Client) Update(contact *Contact) (UpdateResponse, error) {
 	return responseContact, nil
 }
 
-//Delete delete a contact
+// Delete delete a contact
 func (c *Client) Delete(contactID string, customerID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("contact.delete", deleteRequest{ContactID: contactID, CustomerID: customerID})
 	res, err := c.client.DoRequest(fastBillRequest)

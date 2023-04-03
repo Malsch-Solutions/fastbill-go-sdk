@@ -1,12 +1,12 @@
 package project
 
-//Filter available project filter
+// Filter available project filter
 type Filter struct {
 	ProjectID  string `json:"PROJECT_ID,omitempty"`  //project id
 	CustomerID string `json:"CUSTOMER_ID,omitempty"` //customer id
 }
 
-//Project fastbill project definition
+// Project fastbill project definition
 type Project struct {
 	ProjectID            string `json:"PROJECT_ID,omitempty" mapstructure:"PROJECT_ID"`
 	ProjectName          string `json:"PROJECT_NAME,omitempty" mapstructure:"PROJECT_NAME"`
@@ -21,7 +21,7 @@ type Project struct {
 	Tasks                []Task `json:"TASKS,omitempty" mapstructure:"TASKS"`
 }
 
-//Task fastbill project task definition
+// Task fastbill project task definition
 type Task struct {
 	TaskID       string `json:"TASK_ID,omitempty" mapstructure:"TASK_ID"`
 	TaskNumber   string `json:"TASK_NUMBER,omitempty" mapstructure:"TASK_NUMBER"`
@@ -34,13 +34,13 @@ type Task struct {
 	VatPercent   int    `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
 }
 
-//CreateResponse project api response
+// CreateResponse project api response
 type CreateResponse struct {
 	Status    string `json:"STATUS" mapstructure:"STATUS"`
 	ProjectID int    `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
 }
 
-//UpdateResponse project api response
+// UpdateResponse project api response
 type UpdateResponse struct {
 	ProjectID string `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
 	Status    string `json:"STATUS" mapstructure:"STATUS"`

@@ -10,18 +10,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all expense api services
+// Client includes all expense api services
 type Client struct {
 	client service.Service
 }
 
-//NewExpenseClient creates a new expense api client
+// NewExpenseClient creates a new expense api client
 func NewExpenseClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all expenses restricted by the given filters
+// Get get all expenses restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Expense, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("expense.get", parameter, filter)
@@ -40,7 +40,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Expense,
 	return expenseResponse.Expenses, nil
 }
 
-//Create a expense
+// Create a expense
 func (c *Client) Create(req *Request, file io.Reader, fileName string) (CreateResponse, error) {
 
 	var responseDocument CreateResponse

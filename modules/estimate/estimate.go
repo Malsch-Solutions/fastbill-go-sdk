@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all estimate api services
+// Client includes all estimate api services
 type Client struct {
 	client service.Service
 }
 
-//NewEstimateClient creates a new estimate api client
+// NewEstimateClient creates a new estimate api client
 func NewEstimateClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all estimates restricted by the given filters
+// Get get all estimates restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Estimate, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("estimate.get", parameter, filter)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Estimate
 	return estimateResponse.Estimates, nil
 }
 
-//Create create a estimate
+// Create create a estimate
 func (c *Client) Create(estimate *Request) (CreateResponse, error) {
 
 	var responseEstimate CreateResponse
@@ -59,7 +59,7 @@ func (c *Client) Create(estimate *Request) (CreateResponse, error) {
 	return responseEstimate, nil
 }
 
-//Delete delete a estimate
+// Delete delete a estimate
 func (c *Client) Delete(estimateID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("estimate.delete", deleteRequest{EstimateID: estimateID})
 	res, err := c.client.DoRequest(fastBillRequest)
@@ -78,7 +78,7 @@ func (c *Client) Delete(estimateID string) (bool, error) {
 	return deleteRes.Status == "success", nil
 }
 
-//CreateInvoice create an invoice out of an estimate
+// CreateInvoice create an invoice out of an estimate
 func (c *Client) CreateInvoice(estimateID string) (CreateInvoiceResponse, error) {
 	var createInvoiceResponse CreateInvoiceResponse
 
@@ -97,7 +97,7 @@ func (c *Client) CreateInvoice(estimateID string) (CreateInvoiceResponse, error)
 	return createInvoiceResponse, nil
 }
 
-//SendByEmail send an estimate by email
+// SendByEmail send an estimate by email
 func (c *Client) SendByEmail(sendByMailRequest *SendByMailRequest) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("estimate.sendbyemail", sendByMailRequest)
 	res, err := c.client.DoRequest(fastBillRequest)

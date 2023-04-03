@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all project api services
+// Client includes all project api services
 type Client struct {
 	client service.Service
 }
 
-//NewProjectClient creates a new project api client
+// NewProjectClient creates a new project api client
 func NewProjectClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all projects restricted by the given filters
+// Get get all projects restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Project, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("project.get", parameter, filter)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Project,
 	return projectResponse.Projects, nil
 }
 
-//Create create a project
+// Create create a project
 func (c *Client) Create(project *Project) (CreateResponse, error) {
 
 	var responseProject CreateResponse
@@ -59,7 +59,7 @@ func (c *Client) Create(project *Project) (CreateResponse, error) {
 	return responseProject, nil
 }
 
-//Update update a project
+// Update update a project
 func (c *Client) Update(project *Project) (UpdateResponse, error) {
 
 	var responseProject UpdateResponse
@@ -79,7 +79,7 @@ func (c *Client) Update(project *Project) (UpdateResponse, error) {
 	return responseProject, nil
 }
 
-//Delete delete a project
+// Delete delete a project
 func (c *Client) Delete(projectID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("project.delete", deleteRequest{ProjectID: projectID})
 	res, err := c.client.DoRequest(fastBillRequest)

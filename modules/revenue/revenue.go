@@ -10,18 +10,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all revenue api services
+// Client includes all revenue api services
 type Client struct {
 	client service.Service
 }
 
-//NewRevenueClient creates a new revenue api client
+// NewRevenueClient creates a new revenue api client
 func NewRevenueClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all revenues restricted by the given filters
+// Get get all revenues restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Revenue, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("revenue.get", parameter, filter)
@@ -40,7 +40,7 @@ func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Revenue,
 	return revenueResponse.Revenues, nil
 }
 
-//Create create a revenue
+// Create create a revenue
 func (c *Client) Create(revenue *Request, file io.Reader, fileName string) (CreateResponse, error) {
 
 	var responseRevenue CreateResponse
@@ -60,7 +60,7 @@ func (c *Client) Create(revenue *Request, file io.Reader, fileName string) (Crea
 	return responseRevenue, nil
 }
 
-//Delete delete a revenue
+// Delete delete a revenue
 func (c *Client) Delete(revenueID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("revenue.delete", deleteRequest{RevenueID: revenueID})
 	res, err := c.client.DoRequest(fastBillRequest)
@@ -79,7 +79,7 @@ func (c *Client) Delete(revenueID string) (bool, error) {
 	return deleteRes.Status == "success", nil
 }
 
-//SetPaid set an revenue paid
+// SetPaid set an revenue paid
 func (c *Client) SetPaid(setPaidRequest *SetPaidRequest) (SetPaidResponse, error) {
 
 	var setPaidResponse SetPaidResponse

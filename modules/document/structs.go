@@ -1,11 +1,11 @@
 package document
 
-//Filter available invoice filter
+// Filter available invoice filter
 type Filter struct {
 	FolderID string `json:"FOLDER_ID,omitempty"` // Folder ID
 }
 
-//Folder fastbill document folder
+// Folder fastbill document folder
 type Folder struct {
 	FolderID       string `json:"FOLDER_ID" mapstructure:"FOLDER_ID"`
 	Name           string `json:"NAME" mapstructure:"NAME"`
@@ -14,7 +14,7 @@ type Folder struct {
 	ContentCount   string `json:"CONTENT_COUNT" mapstructure:"CONTENT_COUNT"`
 }
 
-//Document fastbill document
+// Document fastbill document
 type Document struct {
 	DocumentID string `json:"DOCUMENT_ID" mapstructure:"DOCUMENT_ID"`
 	Type       string `json:"TYPE" mapstructure:"TYPE"`
@@ -27,13 +27,13 @@ type getResponse struct {
 	Items Response `json:"ITEMS" mapstructure:"ITEMS"`
 }
 
-//Response fastbill document api get response
+// Response fastbill document api get response
 type Response struct {
 	Folders   map[string]Folder `json:"FOLDERS" mapstructure:"FOLDERS"`
 	Documents []Document        `json:"DOCUMENTS" mapstructure:"DOCUMENTS"`
 }
 
-//CreateResponse fastbill create response
+// CreateResponse fastbill create response
 type CreateResponse struct {
 	DocumentID int    `json:"DOCUMENT_ID" mapstructure:"DOCUMENT_ID"`
 	Status     string `json:"STATUS" mapstructure:"STATUS"`

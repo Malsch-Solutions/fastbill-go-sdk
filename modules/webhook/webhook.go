@@ -9,18 +9,18 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//Client includes all webhook api services
+// Client includes all webhook api services
 type Client struct {
 	client service.Service
 }
 
-//NewWebhookClient creates a new webhook api client
+// NewWebhookClient creates a new webhook api client
 func NewWebhookClient(c service.Service) *Client {
 	cClient := Client{client: c}
 	return &cClient
 }
 
-//Get get all webhooks restricted by the given filters
+// Get get all webhooks restricted by the given filters
 func (c *Client) Get(parameter *parameter.Parameter) ([]Webhook, error) {
 
 	fastBillRequest := request.NewRequestWithFilters("webhook.get", parameter, nil)
@@ -39,7 +39,7 @@ func (c *Client) Get(parameter *parameter.Parameter) ([]Webhook, error) {
 	return webhookResponse.Webhooks, nil
 }
 
-//Create create a webhook
+// Create create a webhook
 func (c *Client) Create(webhook *Webhook) (CreateResponse, error) {
 
 	var responseWebhook CreateResponse
@@ -59,7 +59,7 @@ func (c *Client) Create(webhook *Webhook) (CreateResponse, error) {
 	return responseWebhook, nil
 }
 
-//Delete delete a webhook
+// Delete delete a webhook
 func (c *Client) Delete(webhookID string) (bool, error) {
 	fastBillRequest := request.NewRequestWithData("webhook.delete", deleteRequest{WebhookID: webhookID})
 	res, err := c.client.DoRequest(fastBillRequest)

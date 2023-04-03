@@ -1,6 +1,6 @@
 package time
 
-//Filter available time filter
+// Filter available time filter
 type Filter struct {
 	CustomerID string `json:"CUSTOMER_ID,omitempty"`
 	ProjectID  string `json:"PROJECT_ID,omitempty"`
@@ -11,7 +11,7 @@ type Filter struct {
 	Date       string `json:"DATE,omitempty"`
 }
 
-//Time fastbill time
+// Time fastbill time
 type Time struct {
 	TimeID          string `json:"TIME_ID" mapstructure:"TIME_ID"`
 	TaskID          string `json:"TASK_ID" mapstructure:"TASK_ID"`
@@ -25,13 +25,13 @@ type Time struct {
 	Comment         string `json:"COMMENT" mapstructure:"COMMENT"`
 }
 
-//CreateResponse time api response
+// CreateResponse time api response
 type CreateResponse struct {
 	Status string `json:"STATUS" mapstructure:"STATUS"`
 	TimeID int    `json:"TIME_ID" mapstructure:"TIME_ID"`
 }
 
-//UpdateResponse time api response
+// UpdateResponse time api response
 type UpdateResponse struct {
 	TimeID string `json:"TIME_ID" mapstructure:"TIME_ID"`
 	Status string `json:"STATUS" mapstructure:"STATUS"`

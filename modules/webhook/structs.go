@@ -7,7 +7,7 @@ import (
 	"github.com/malsch-solutions/fastbill-go-sdk/modules/invoice"
 )
 
-//Webhook fastbill webhook definition
+// Webhook fastbill webhook definition
 type Webhook struct {
 	WebhookID string `json:"WEBHOOK_ID,omitempty" mapstructure:"WEBHOOK_ID"`
 	Endpoint  string `json:"ENDPOINT,omitempty" mapstructure:"ENDPOINT"`
@@ -15,7 +15,7 @@ type Webhook struct {
 	Events    string `json:"EVENS,omitempty" mapstructure:"EVENS"` // customer.created,customer.updated,customer.deleted,invoice.created,invoice.completed,invoice.canceled,estimate.created,estimate.updated,contact.created,contact.updated,contact.deleted
 }
 
-//CreateResponse webhook api response
+// CreateResponse webhook api response
 type CreateResponse struct {
 	Status    string `json:"STATUS" mapstructure:"STATUS"`
 	WebhookID int    `json:"WEBHOOK_ID" mapstructure:"WEBHOOK_ID"`
@@ -33,7 +33,7 @@ type deleteResponse struct {
 	Status string `json:"STATUS" mapstructure:"STATUS"`
 }
 
-//Event fastbill webhook event
+// Event fastbill webhook event
 type Event struct {
 	ID       int                `json:"id"`
 	Type     string             `json:"type"`

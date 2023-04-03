@@ -1,11 +1,11 @@
 package article
 
-//Filter available article filter
+// Filter available article filter
 type Filter struct {
 	ArticleNumber string `json:"ARTICLE_NUMBER,omitempty"` //Assigned article number
 }
 
-//Article fastbill article definition
+// Article fastbill article definition
 type Article struct {
 	ArticleID     string `json:"ARTICLE_ID,omitempty" mapstructure:"ARTICLE_ID"`
 	ArticleNumber string `json:"ARTICLE_NUMBER,omitempty" mapstructure:"ARTICLE_NUMBER"`
@@ -19,13 +19,13 @@ type Article struct {
 	Tags          string `json:"TAGS,omitempty" mapstructure:"TAGS"`
 }
 
-//CreateResponse article api response
+// CreateResponse article api response
 type CreateResponse struct {
 	Status    string `json:"STATUS" mapstructure:"STATUS"`
 	ArticleID int    `json:"ARTICLE_ID" mapstructure:"ARTICLE_ID"`
 }
 
-//UpdateResponse article api response
+// UpdateResponse article api response
 type UpdateResponse struct {
 	Status string `json:"STATUS" mapstructure:"STATUS"`
 }
