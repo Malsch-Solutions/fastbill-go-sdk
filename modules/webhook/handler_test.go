@@ -2,7 +2,7 @@ package webhook
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -37,7 +37,7 @@ func getRequest() http.Request {
 
 	JSONBody, _ := json.Marshal(body)
 
-	req := http.Request{Body: ioutil.NopCloser(strings.NewReader(string(JSONBody))),
+	req := http.Request{Body: io.NopCloser(strings.NewReader(string(JSONBody))),
 		Header: map[string][]string{}}
 	req.Method = "POST"
 	req.Header.Set("Content-Type", "application/json")
@@ -91,7 +91,7 @@ func TestValidateInValidBodyRequest(t *testing.T) {
 	req := getRequest()
 
 	JSONBody, _ := json.Marshal(body)
-	req.Body = ioutil.NopCloser(strings.NewReader(string(JSONBody)))
+	req.Body = io.NopCloser(strings.NewReader(string(JSONBody)))
 
 	client := NewWebhookRequestHandler(req)
 	_, err := client.ValidateAndGetData()

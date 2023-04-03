@@ -7,6 +7,10 @@
 
 golang sdk for the api of https://www.fastbill.com/
 
+## Requirements
+
+- Go 1.19 or higher
+
 ## Usage
 Add the sdk package import statement
 

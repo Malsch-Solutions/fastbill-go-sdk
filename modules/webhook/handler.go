@@ -3,16 +3,16 @@ package webhook
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
-//RequestHandler service interface
+// RequestHandler service interface
 type RequestHandler interface {
 	ValidateAndGetData() (Event, error)
 }
 
-//NewWebhookRequestHandler create new handler which can handle fastbill webhook requests
+// NewWebhookRequestHandler create new handler which can handle fastbill webhook requests
 func NewWebhookRequestHandler(req http.Request) RequestHandler {
 	h := &FastbillWebhookRequestHandler{
 		req,
@@ -21,12 +21,12 @@ func NewWebhookRequestHandler(req http.Request) RequestHandler {
 	return h
 }
 
-//FastbillWebhookRequestHandler can handle fastbill webhook http requests
+// FastbillWebhookRequestHandler can handle fastbill webhook http requests
 type FastbillWebhookRequestHandler struct {
 	request http.Request
 }
 
-//ValidateAndGetData validates the request and returns the event data
+// ValidateAndGetData validates the request and returns the event data
 func (h *FastbillWebhookRequestHandler) ValidateAndGetData() (Event, error) {
 	req := h.request
 
@@ -47,7 +47,7 @@ func (h *FastbillWebhookRequestHandler) ValidateAndGetData() (Event, error) {
 		_ = req.Body.Close()
 	}()
 
-	body, _ := ioutil.ReadAll(req.Body)
+	body, _ := io.ReadAll(req.Body)
 
 	if err := json.Unmarshal(body, &data); err != nil {
 		return data, fmt.Errorf("invalid Request, invalid json body: %s", err.Error())

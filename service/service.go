@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -20,12 +19,12 @@ import (
 
 const baseURL string = "https://my.fastbill.com/api/1.0/api.php"
 
-//HTTPClient http client interface
+// HTTPClient http client interface
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-//NewService creates new fastbill api client
+// NewService creates new fastbill api client
 func NewService(email string, apiKey string) Service {
 	client := &FastBillService{
 		email:  email,
@@ -36,7 +35,7 @@ func NewService(email string, apiKey string) Service {
 	return client
 }
 
-//NewServiceWithClient creates new fastbill api client
+// NewServiceWithClient creates new fastbill api client
 func NewServiceWithClient(email string, apiKey string, httpClient HTTPClient) Service {
 	client := &FastBillService{
 		email:  email,
@@ -47,20 +46,20 @@ func NewServiceWithClient(email string, apiKey string, httpClient HTTPClient) Se
 	return client
 }
 
-//Service service interface
+// Service service interface
 type Service interface {
 	DoRequest(fastBillRequest request.Request) (response.Response, error)
 	DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error)
 }
 
-//FastBillService the fastbill api client
+// FastBillService the fastbill api client
 type FastBillService struct {
 	email  string
 	apiKey string
 	client HTTPClient
 }
 
-//DoMultiPartRequest Executes the api call as with file upload
+// DoMultiPartRequest Executes the api call as with file upload
 func (c *FastBillService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
 	var fastBillResponse response.Response
 
@@ -92,7 +91,7 @@ func (c *FastBillService) DoMultiPartRequest(fastBillRequest request.Request, fi
 	return fastBillResponse, err
 }
 
-//DoRequest Executes the api call
+// DoRequest Executes the api call
 func (c *FastBillService) DoRequest(fastBillRequest request.Request) (response.Response, error) {
 	var fastBillResponse response.Response
 
@@ -128,7 +127,7 @@ func parseResponse(res *http.Response, fastBillResponse *response.Response) erro
 		_ = res.Body.Close()
 	}()
 
-	body, _ := ioutil.ReadAll(res.Body)
+	body, _ := io.ReadAll(res.Body)
 
 	if err := json.Unmarshal(body, &fastBillResponse); err != nil {
 		return err
