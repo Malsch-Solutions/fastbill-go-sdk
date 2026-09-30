@@ -4,30 +4,54 @@
 [![CodeQL](https://github.com/Malsch-Solutions/fastbill-go-sdk/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Malsch-Solutions/fastbill-go-sdk/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/Malsch-Solutions/fastbill-go-sdk/branch/main/graph/badge.svg?token=NYMO09X0BU)](https://codecov.io/gh/Malsch-Solutions/fastbill-go-sdk)
 [![Go Reference](https://pkg.go.dev/badge/github.com/malsch-solutions/fastbill-go-sdk/v2.svg)](https://pkg.go.dev/github.com/malsch-solutions/fastbill-go-sdk/v2)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Malsch-Solutions/fastbill-go-sdk)](https://goreportcard.com/report/github.com/Malsch-Solutions/fastbill-go-sdk)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Go client for the [FastBill API](https://apidocs.fastbill.com/fastbill/en/). No dependencies outside the standard library.
+Go client for the [FastBill API](https://apidocs.fastbill.com/fastbill/en/): customers, invoices, expenses, revenues and everything else the API offers. No dependencies outside the standard library.
 
-## Requirements
+## Installation
 
-Go 1.25 or newer.
+Requires Go 1.25 or newer.
 
 ```bash
 go get github.com/malsch-solutions/fastbill-go-sdk/v2
 ```
 
+The import path ends in `/v2`; the package is called `fastbill`.
+
 ## Usage
 
+The client authenticates with the email address of your FastBill user and the API key from your FastBill account settings.
+
 ```go
+package main
+
 import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
 	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/invoice"
 )
 
-client := fastbill.NewClient(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FASTBILL_API_KEY"))
-invoices := invoice.NewClient(client)
+func main() {
+	ctx := context.Background()
+	client := fastbill.NewClient(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FASTBILL_API_KEY"))
+	invoices := invoice.NewClient(client)
 
-drafts, err := invoices.Get(ctx, fastbill.Page{Limit: 100}, &invoice.Filter{Type: invoice.TypeDraft})
+	drafts, err := invoices.Get(ctx, fastbill.Page{Limit: 100}, &invoice.Filter{Type: invoice.TypeDraft})
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, inv := range drafts {
+		fmt.Println(inv.InvoiceID, inv.InvoiceDate, inv.Total, inv.CurrencyCode)
+	}
+}
 ```
+
+More in [`examples/`](examples).
 
 Every call takes a `context.Context`. The client has a 60-second timeout. Pass `fastbill.WithHTTPClient` to change it.
 
@@ -83,6 +107,15 @@ Dates are strings in FastBill's format (`YYYY-MM-DD`).
 | `time` | Work times |
 | `webhook` | Webhooks, and `webhook.ParseEvent` for incoming calls |
 
+## Versions
+
+| Version | Module path | Status |
+|---|---|---|
+| v2 | `github.com/malsch-solutions/fastbill-go-sdk/v2` | current |
+| v1 | `github.com/malsch-solutions/fastbill-go-sdk` | no further changes; stays available for existing users |
+
+The project follows [semantic versioning](https://semver.org). Releases are listed on the [releases page](https://github.com/Malsch-Solutions/fastbill-go-sdk/releases).
+
 ## Upgrading from v1
 
 v2 is a new module path, `github.com/malsch-solutions/fastbill-go-sdk/v2`. v1 keeps working where it is pinned.
@@ -95,3 +128,17 @@ v2 is a new module path, `github.com/malsch-solutions/fastbill-go-sdk/v2`. v1 ke
 - Filter dates are `YYYY-MM-DD` strings. v1 sent `time.Time` as RFC 3339, which FastBill does not understand.
 - Webhooks: `NewWebhookRequestHandler(req).ValidateAndGetData()` → `webhook.ParseEvent(r)`.
 - Fields from FastBill's current docs were added, e.g. invoice `SUBTYPE`, `STATE`, `PAYMENTS` and `DETAILS_URL`.
+
+## Contributing
+
+Issues and pull requests are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md). Before opening a pull request, run:
+
+```bash
+gofmt -l . && go vet ./... && go test -race ./...
+```
+
+Tests run against a fake API (`internal/fastbilltest`); they never call FastBill.
+
+## License
+
+[MIT](LICENSE)
