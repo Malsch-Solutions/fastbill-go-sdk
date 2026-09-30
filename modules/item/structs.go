@@ -1,35 +1,33 @@
 package item
 
-// Filter available  filter
+import "github.com/malsch-solutions/fastbill-go-sdk/v2"
+
+// Filter narrows item.get. InvoiceID is required.
 type Filter struct {
-	InvoiceID int `json:"INVOICE_ID,omitempty"` //A specific invoice ID
+	InvoiceID fastbill.ID `json:"INVOICE_ID,omitempty"`
 }
 
-// Item fastbill item definition
+// Item is an invoice line as item.get returns it.
 type Item struct {
-	InvoiceItemID string  `json:"INVOICE_ITEM_ID" mapstructure:"INVOICE_ITEM_ID"`
-	InvoiceID     string  `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`
-	CustomerID    string  `json:"CUSTOMER_ID" mapstructure:"CUSTOMER_ID"`
-	ArticleNumber string  `json:"ARTICLE_NUMBER" mapstructure:"ARTICLE_NUMBER"`
-	Description   string  `json:"DESCRIPTION" mapstructure:"DESCRIPTION"`
-	Quantity      string  `json:"QUANTITY" mapstructure:"QUANTITY"`
-	UnitPrice     string  `json:"UNIT_PRICE" mapstructure:"UNIT_PRICE"`
-	VatPrice      string  `json:"VAT_PERCENT" mapstructure:"VAT_PERCENT"`
-	VatValue      int     `json:"VAT_VALUE" mapstructure:"VAT_VALUE"`
-	CompleteNet   float64 `json:"COMPLETE_NET" mapstructure:"COMPLETE_NET"`
-	CompleteGross float64 `json:"COMPLETE_GROSS" mapstructure:"COMPLETE_GROSS"`
-	CurrencyCode  string  `json:"CURRENCY_CODE" mapstructure:"CURRENCY_CODE"`
-	SortOrder     int     `json:"SORT_ORDER" mapstructure:"SORT_ORDER"`
+	InvoiceItemID fastbill.ID     `json:"INVOICE_ITEM_ID"`
+	InvoiceID     fastbill.ID     `json:"INVOICE_ID"`
+	CustomerID    fastbill.ID     `json:"CUSTOMER_ID"`
+	ArticleNumber string          `json:"ARTICLE_NUMBER"`
+	Description   string          `json:"DESCRIPTION"`
+	Quantity      fastbill.Number `json:"QUANTITY"`
+	UnitPrice     fastbill.Number `json:"UNIT_PRICE"`
+	VatPercent    fastbill.Number `json:"VAT_PERCENT"`
+	VatValue      fastbill.Number `json:"VAT_VALUE"`
+	CompleteNet   fastbill.Number `json:"COMPLETE_NET"`
+	CompleteGross fastbill.Number `json:"COMPLETE_GROSS"`
+	CurrencyCode  string          `json:"CURRENCY_CODE"`
+	SortOrder     fastbill.Number `json:"SORT_ORDER"`
+}
+
+type idRequest struct {
+	InvoiceItemID fastbill.ID `json:"INVOICE_ITEM_ID"`
 }
 
 type getResponse struct {
-	Items []Item `json:"ITEMS"`
-}
-
-type deleteRequest struct {
-	InvoiceItemID string `json:"INVOICE_ITEM_ID"`
-}
-
-type deleteResponse struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
+	Items fastbill.List[Item] `json:"ITEMS"`
 }

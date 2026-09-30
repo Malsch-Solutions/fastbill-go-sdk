@@ -1,194 +1,98 @@
+// Package invoice wraps the invoice.* services: outgoing invoices, drafts
+// and credit notes.
 package invoice
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all invoice api services
+// Client calls the invoice services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewInvoiceClient creates a new invoice api client
-func NewInvoiceClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns an invoice client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all invoices restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Invoice, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("invoice.get", parameter, filter)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Invoice, 0), err
+// Get lists invoices. A nil filter lists all (FastBill may leave drafts out
+// then; filter by Type to be sure).
+func (c *Client) Get(ctx context.Context, page fastbill.Page, filter *Filter) ([]Invoice, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest("invoice.get", page, filter), &res); err != nil {
+		return nil, err
 	}
-
-	var invoiceResponse getResponse
-	err = mapstructure.Decode(res.Response, &invoiceResponse)
-	if err != nil {
-		return make([]Invoice, 0), fmt.Errorf("failed to parse invoice response: %s", err.Error())
-	}
-
-	return invoiceResponse.Invoices, nil
+	return res.Invoices, nil
 }
 
-// Create create a invoice
-func (c *Client) Create(invoice *Request) (CreateResponse, error) {
-
-	var responseInvoice CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("invoice.create", invoice)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseInvoice, err
+// Create creates a draft invoice.
+func (c *Client) Create(ctx context.Context, req *Request) (CreateResponse, error) {
+	var res CreateResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("invoice.create", req), &res); err != nil {
+		return res, err
 	}
-
-	err = mapstructure.Decode(res.Response, &responseInvoice)
-	if err != nil {
-		return responseInvoice, fmt.Errorf("failed to parse invoice response: %s", err.Error())
-	}
-
-	return responseInvoice, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("invoice.create")
 }
 
-// Update update a invoice
-func (c *Client) Update(invoice *Request) (UpdateResponse, error) {
-
-	var responseInvoice UpdateResponse
-
-	fastBillRequest := request.NewRequestWithData("invoice.update", invoice)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseInvoice, err
-	}
-
-	err = mapstructure.Decode(res.Response, &responseInvoice)
-	if err != nil {
-		return responseInvoice, fmt.Errorf("failed to parse invoice response: %s", err.Error())
-	}
-
-	return responseInvoice, nil
+// Update changes a draft invoice.
+func (c *Client) Update(ctx context.Context, req *Request) error {
+	return c.status(ctx, "invoice.update", req)
 }
 
-// Delete delete a invoice
-func (c *Client) Delete(invoiceID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("invoice.delete", deleteRequest{InvoiceID: invoiceID})
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return false, err
-	}
-
-	var deleteRes deleteResponse
-
-	err = mapstructure.Decode(res.Response, &deleteRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse invoice response: %s", err.Error())
-	}
-
-	return deleteRes.Status == "success", nil
+// Delete deletes a draft invoice.
+func (c *Client) Delete(ctx context.Context, invoiceID fastbill.ID) error {
+	return c.status(ctx, "invoice.delete", idRequest{InvoiceID: invoiceID})
 }
 
-// Cancel cancel an invoice
-func (c *Client) Cancel(invoiceID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("invoice.cancel", cancelRequest{InvoiceID: invoiceID})
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return false, err
+// Complete finalizes a draft; FastBill assigns the invoice number.
+func (c *Client) Complete(ctx context.Context, invoiceID fastbill.ID) (CompleteResponse, error) {
+	var res CompleteResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("invoice.complete", idRequest{InvoiceID: invoiceID}), &res); err != nil {
+		return res, err
 	}
-
-	var deleteRes cancelResponse
-
-	err = mapstructure.Decode(res.Response, &deleteRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse invoice response: %s", err.Error())
-	}
-
-	return deleteRes.Status == "success", nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("invoice.complete")
 }
 
-// Complete complete a invoice
-func (c *Client) Complete(invoiceID string) (CompleteResponse, error) {
-	var completeResponse CompleteResponse
-	fastBillRequest := request.NewRequestWithData("invoice.complete", completeRequest{InvoiceID: invoiceID})
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return completeResponse, err
-	}
-
-	err = mapstructure.Decode(res.Response, &completeResponse)
-	if err != nil {
-		return completeResponse, fmt.Errorf("failed to parse invoice response: %s", err.Error())
-	}
-
-	return completeResponse, nil
+// Cancel cancels a finalized invoice.
+func (c *Client) Cancel(ctx context.Context, invoiceID fastbill.ID) error {
+	return c.status(ctx, "invoice.cancel", idRequest{InvoiceID: invoiceID})
 }
 
-// SendByEmail send an invoice by email
-func (c *Client) SendByEmail(sendByMailRequest *SendByMailRequest) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("invoice.sendbyemail", sendByMailRequest)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return false, err
-	}
-
-	var sendByMailRes sendByMailResponse
-
-	err = mapstructure.Decode(res.Response, &sendByMailRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse invoice response: %s", err.Error())
-	}
-
-	return sendByMailRes.Status == "success", nil
+// Lock locks an invoice against changes.
+func (c *Client) Lock(ctx context.Context, invoiceID fastbill.ID) error {
+	return c.status(ctx, "invoice.lock", idRequest{InvoiceID: invoiceID})
 }
 
-// SendByPost send an invoice by post
-func (c *Client) SendByPost(invoiceID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("invoice.sendbypost", sendByPostRequest{InvoiceID: invoiceID})
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return false, err
-	}
-
-	var sendByPostRes sendByPostResponse
-
-	err = mapstructure.Decode(res.Response, &sendByPostRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse invoice response: %s", err.Error())
-	}
-
-	return sendByPostRes.Status == "success", nil
+// SendByEmail emails the invoice PDF.
+func (c *Client) SendByEmail(ctx context.Context, req *SendByEmailRequest) error {
+	return c.status(ctx, "invoice.sendbyemail", req)
 }
 
-// SetPaid set an invoice paid
-func (c *Client) SetPaid(setPaidRequest *SetPaidRequest) (SetPaidResponse, error) {
-
-	var setPaidResponse SetPaidResponse
-
-	fastBillRequest := request.NewRequestWithData("invoice.setpaid", setPaidRequest)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return setPaidResponse, err
+// SendByPost sends the invoice by letter, paid with FastBill credits.
+func (c *Client) SendByPost(ctx context.Context, invoiceID fastbill.ID) (SendByPostResponse, error) {
+	var res SendByPostResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("invoice.sendbypost", idRequest{InvoiceID: invoiceID}), &res); err != nil {
+		return res, err
 	}
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("invoice.sendbypost")
+}
 
-	err = mapstructure.Decode(res.Response, &setPaidResponse)
-	if err != nil {
-		return setPaidResponse, fmt.Errorf("failed to parse setPaidRequest response: %s", err.Error())
+// SetPaid marks an invoice as paid.
+func (c *Client) SetPaid(ctx context.Context, req *SetPaidRequest) (SetPaidResponse, error) {
+	var res SetPaidResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("invoice.setpaid", req), &res); err != nil {
+		return res, err
 	}
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("invoice.setpaid")
+}
 
-	return setPaidResponse, nil
+func (c *Client) status(ctx context.Context, service string, data any) error {
+	var res fastbill.StatusResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest(service, data), &res); err != nil {
+		return err
+	}
+	return res.Err(service)
 }

@@ -1,99 +1,55 @@
+// Package recurring wraps the recurring.* services: recurring invoices that
+// FastBill writes on a schedule.
 package recurring
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all recurring api services
+// Client calls the recurring invoice services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewRecurringClient creates a new recurring api client
-func NewRecurringClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns a recurring invoice client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all recurrings restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Recurring, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("recurring.get", parameter, filter)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Recurring, 0), err
+// Get lists recurring invoices. A nil filter lists all.
+func (c *Client) Get(ctx context.Context, page fastbill.Page, filter *Filter) ([]Recurring, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest("recurring.get", page, filter), &res); err != nil {
+		return nil, err
 	}
-
-	var recurringResponse getResponse
-	err = mapstructure.Decode(res.Response, &recurringResponse)
-	if err != nil {
-		return make([]Recurring, 0), fmt.Errorf("failed to parse recurring response: %s", err.Error())
-	}
-
-	return recurringResponse.Recurrings, nil
+	return res.Recurrings, nil
 }
 
-// Create create a recurring
-func (c *Client) Create(recurring *Request) (CreateResponse, error) {
-
-	var responseRecurring CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("recurring.create", recurring)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseRecurring, err
+// Create creates a recurring invoice.
+func (c *Client) Create(ctx context.Context, req *Request) (CreateResponse, error) {
+	var res CreateResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("recurring.create", req), &res); err != nil {
+		return res, err
 	}
-
-	err = mapstructure.Decode(res.Response, &responseRecurring)
-	if err != nil {
-		return responseRecurring, fmt.Errorf("failed to parse recurring response: %s", err.Error())
-	}
-
-	return responseRecurring, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("recurring.create")
 }
 
-// Update update a recurring
-func (c *Client) Update(recurring *Request) (UpdateResponse, error) {
-
-	var responseRecurring UpdateResponse
-
-	fastBillRequest := request.NewRequestWithData("recurring.update", recurring)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseRecurring, err
-	}
-
-	err = mapstructure.Decode(res.Response, &responseRecurring)
-	if err != nil {
-		return responseRecurring, fmt.Errorf("failed to parse recurring response: %s", err.Error())
-	}
-
-	return responseRecurring, nil
+// Update changes a recurring invoice; req.InvoiceID is required.
+func (c *Client) Update(ctx context.Context, req *Request) error {
+	return c.status(ctx, "recurring.update", req)
 }
 
-// Delete delete a recurring
-func (c *Client) Delete(recurringID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("recurring.delete", deleteRequest{InvoiceID: recurringID})
-	res, err := c.client.DoRequest(fastBillRequest)
+// Delete deletes a recurring invoice.
+func (c *Client) Delete(ctx context.Context, invoiceID fastbill.ID) error {
+	return c.status(ctx, "recurring.delete", idRequest{InvoiceID: invoiceID})
+}
 
-	if err != nil {
-		return false, err
+func (c *Client) status(ctx context.Context, service string, data any) error {
+	var res fastbill.StatusResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest(service, data), &res); err != nil {
+		return err
 	}
-
-	var deleteRes deleteResponse
-
-	err = mapstructure.Decode(res.Response, &deleteRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse recurring response: %s", err.Error())
-	}
-
-	return deleteRes.Status == "success", nil
+	return res.Err(service)
 }

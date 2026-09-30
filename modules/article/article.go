@@ -1,99 +1,57 @@
+// Package article wraps the article.* services: the products and services
+// of the product catalog, which invoice items can refer to by number.
 package article
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all article api services
+// Client calls the article services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewArticleClient creates a new article api client
-func NewArticleClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns an article client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all articles restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Article, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("article.get", parameter, filter)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Article, 0), err
+// Get lists articles. A nil filter lists all.
+func (c *Client) Get(ctx context.Context, page fastbill.Page, filter *Filter) ([]Article, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest("article.get", page, filter), &res); err != nil {
+		return nil, err
 	}
-
-	var articleResponse getResponse
-	err = mapstructure.Decode(res.Response, &articleResponse)
-	if err != nil {
-		return make([]Article, 0), fmt.Errorf("failed to parse article response: %s", err.Error())
-	}
-
-	return articleResponse.Articles, nil
+	return res.Articles, nil
 }
 
-// Create create a article
-func (c *Client) Create(article *Article) (CreateResponse, error) {
-
-	var responseArticle CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("article.create", article)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseArticle, err
+// Create creates an article. ArticleNumber, Title and UnitPrice are
+// required.
+func (c *Client) Create(ctx context.Context, article *Article) (CreateResponse, error) {
+	var res CreateResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("article.create", article), &res); err != nil {
+		return res, err
 	}
-
-	err = mapstructure.Decode(res.Response, &responseArticle)
-	if err != nil {
-		return responseArticle, fmt.Errorf("failed to parse article response: %s", err.Error())
-	}
-
-	return responseArticle, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("article.create")
 }
 
-// Update update a article
-func (c *Client) Update(article *Article) (UpdateResponse, error) {
-
-	var responseArticle UpdateResponse
-
-	fastBillRequest := request.NewRequestWithData("article.update", article)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseArticle, err
-	}
-
-	err = mapstructure.Decode(res.Response, &responseArticle)
-	if err != nil {
-		return responseArticle, fmt.Errorf("failed to parse article response: %s", err.Error())
-	}
-
-	return responseArticle, nil
+// Update changes the article with article.ArticleID. Only the fields that
+// are set are sent.
+func (c *Client) Update(ctx context.Context, article *Article) error {
+	return c.status(ctx, "article.update", article)
 }
 
-// Delete delete a article
-func (c *Client) Delete(articleID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("article.delete", deleteRequest{ArticleID: articleID})
-	res, err := c.client.DoRequest(fastBillRequest)
+// Delete deletes an article.
+func (c *Client) Delete(ctx context.Context, articleID fastbill.ID) error {
+	return c.status(ctx, "article.delete", idRequest{ArticleID: articleID})
+}
 
-	if err != nil {
-		return false, err
+func (c *Client) status(ctx context.Context, service string, data any) error {
+	var res fastbill.StatusResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest(service, data), &res); err != nil {
+		return err
 	}
-
-	var deleteRes deleteResponse
-
-	err = mapstructure.Decode(res.Response, &deleteRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse article response: %s", err.Error())
-	}
-
-	return deleteRes.Status == "success", nil
+	return res.Err(service)
 }

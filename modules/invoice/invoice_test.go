@@ -1,300 +1,133 @@
-package invoice
+package invoice_test
 
 import (
+	"context"
 	"errors"
-	"io"
 	"testing"
-	"time"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/response"
-	"github.com/stretchr/testify/assert"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/internal/fastbilltest"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/invoice"
 )
 
-type dummyService struct {
-}
+var ctx = context.Background()
 
-func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Response, error) {
+// An invoice as FastBill sends it: IDs and text as strings, amounts as
+// numbers, an empty list as {}.
+const invoiceJSON = `{
+	"INVOICE_ID": "3141", "TYPE": "outgoing", "CUSTOMER_ID": "59", "CUSTOMER_NUMBER": "1042",
+	"INVOICE_NUMBER": "00277", "INVOICE_DATE": "2026-09-01", "IS_CANCELED": "0", "IS_GROSS": 0,
+	"PAYMENT_TYPE": "1", "SUB_TOTAL": 1234.5, "VAT_TOTAL": 0, "TOTAL": 1234.5, "CURRENCY_CODE": "EUR",
+	"ITEMS": [{"INVOICE_ITEM_ID": 7, "DESCRIPTION": "Support", "QUANTITY": 1.5, "UNIT": "Std.", "UNIT_PRICE": 823, "VAT_PERCENT": 0, "COMPLETE_NET": 1234.5, "CATEGORY": []}],
+	"VAT_ITEMS": [{"VAT_PERCENT": 0, "COMPLETE_NET": 1234.5, "VAT_VALUE": 0}],
+	"PAYMENTS": {},
+	"DOCUMENT_URL": "https://my.fastbill.com/download/x.pdf"
+}`
 
-	if fastBillRequest.Service == "invoice.get" {
-		return response.Response{
-			Response: getResponse{Invoices: []Invoice{
-				{},
-			}},
-		}, nil
+func TestGet(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"INVOICES":[` + invoiceJSON + `]}` })
+	invoices, err := invoice.NewClient(server.Client()).Get(ctx, fastbill.Page{Limit: 100}, &invoice.Filter{Type: invoice.TypeDraft})
+	if err != nil {
+		t.Fatal(err)
 	}
-
-	if fastBillRequest.Service == "invoice.create" {
-		return response.Response{
-			Response: CreateResponse{InvoiceID: 10, Status: "success"},
-		}, nil
+	if len(invoices) != 1 {
+		t.Fatalf("invoices = %+v", invoices)
 	}
-
-	if fastBillRequest.Service == "invoice.update" {
-		return response.Response{
-			Response: UpdateResponse{Status: "success"},
-		}, nil
+	inv := invoices[0]
+	if inv.InvoiceID != "3141" || inv.InvoiceNumber != "00277" || inv.Total != "1234.5" || inv.IsCanceled.Bool() || inv.IsGross != fastbill.No {
+		t.Errorf("invoice = %+v", inv)
 	}
-
-	if fastBillRequest.Service == "invoice.delete" {
-		return response.Response{
-			Response: deleteResponse{Status: "success"},
-		}, nil
+	if item := inv.Items[0]; item.InvoiceItemID != "7" || item.Quantity != "1.5" || item.Unit != "Std." {
+		t.Errorf("item = %+v", item)
 	}
-
-	if fastBillRequest.Service == "invoice.complete" {
-		return response.Response{
-			Response: CompleteResponse{Status: "success", InvoiceID: "1337"},
-		}, nil
+	if len(inv.Payments) != 0 || inv.VatItems[0].CompleteNet != "1234.5" {
+		t.Errorf("payments = %v, vat items = %v", inv.Payments, inv.VatItems)
 	}
-
-	if fastBillRequest.Service == "invoice.cancel" {
-		return response.Response{
-			Response: cancelResponse{Status: "success"},
-		}, nil
+	got := server.Last(t)
+	if got.Service != "invoice.get" || got.Limit != 100 {
+		t.Errorf("request = %+v", got)
 	}
-
-	if fastBillRequest.Service == "invoice.sendbyemail" {
-		return response.Response{
-			Response: sendByMailResponse{Status: "success"},
-		}, nil
-	}
-
-	if fastBillRequest.Service == "invoice.sendbypost" {
-		return response.Response{
-			Response: sendByPostResponse{Status: "success", RemainingCredits: "100"},
-		}, nil
-	}
-
-	if fastBillRequest.Service == "invoice.setpaid" {
-		return response.Response{
-			Response: SetPaidResponse{Status: "success", InvoiceNumber: "1337"},
-		}, nil
-	}
-
-	return response.Response{}, errors.New("unknown service")
+	fastbilltest.JSONEqual(t, got.Filter, `{"TYPE":"draft"}`)
 }
 
-func (c *dummyService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func TestNewInvoiceClient(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	assert.IsType(t, &Client{}, client)
-}
-
-func TestInvoiceClientGet(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	resp, err := client.Get(&parameter.Parameter{}, nil)
-	assert.NoError(t, err)
-	assert.IsType(t, []Invoice{}, resp)
-	assert.Len(t, resp, 1)
-}
-
-func TestInvoiceClientCreate(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	resp, err := client.Create(&Request{})
-	assert.NoError(t, err)
-	assert.IsType(t, CreateResponse{}, resp)
-}
-
-func TestInvoiceClientUpdate(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	resp, err := client.Update(&Request{})
-	assert.NoError(t, err)
-	assert.IsType(t, UpdateResponse{}, resp)
-}
-
-func TestInvoiceClientDelete(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	resp, err := client.Delete("1337")
-	assert.NoError(t, err)
-	assert.True(t, resp)
-}
-
-func TestInvoiceClientComplete(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	resp, err := client.Complete("1337")
-	assert.NoError(t, err)
-	assert.Equal(t, "success", resp.Status)
-}
-
-func TestInvoiceClientCancel(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	resp, err := client.Cancel("1337")
-	assert.NoError(t, err)
-	assert.True(t, resp)
-}
-
-func TestInvoiceClientSendByMail(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	resp, err := client.SendByEmail(&SendByMailRequest{
-		InvoiceID: "1337",
+func TestCreate(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"STATUS":"success","INVOICE_ID":3142}` })
+	res, err := invoice.NewClient(server.Client()).Create(ctx, &invoice.Request{
+		CustomerID: "59",
+		VatCase:    "small_business_regulation",
+		Items: []invoice.Item{{
+			Description: "Support", Quantity: fastbill.NewNumber(1.5), UnitPrice: fastbill.NewInt(80), VatPercent: fastbill.NewInt(0),
+		}},
 	})
-	assert.NoError(t, err)
-	assert.True(t, resp)
+	if err != nil || res.InvoiceID != "3142" {
+		t.Fatalf("Create = %+v, %v", res, err)
+	}
+	fastbilltest.JSONEqual(t, server.Last(t).Data, `{
+		"CUSTOMER_ID": "59", "VAT_CASE": "small_business_regulation",
+		"ITEMS": [{"DESCRIPTION": "Support", "QUANTITY": 1.5, "UNIT_PRICE": 80, "VAT_PERCENT": 0}]
+	}`)
 }
 
-func TestInvoiceClientSendByPost(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	resp, err := client.SendByPost("1337")
-	assert.NoError(t, err)
-	assert.True(t, resp)
-}
-
-func TestInvoiceClientSetPaid(t *testing.T) {
-	client := NewInvoiceClient(&dummyService{})
-	resp, err := client.SetPaid(&SetPaidRequest{
-		InvoiceID:     "1337",
-		PaidDate:      time.Now(),
-		PaymentMethod: "Cash",
+func TestServicesWithStatus(t *testing.T) {
+	server := fastbilltest.New(t, func(r fastbilltest.Received) string {
+		switch r.Service {
+		case "invoice.complete":
+			return `{"STATUS":"success","INVOICE_NUMBER":"00278"}`
+		case "invoice.sendbypost":
+			return `{"STATUS":"success","REMAINING_CREDITS":"12"}`
+		case "invoice.setpaid":
+			return `{"STATUS":"success","INVOICE_NUMBER":"00278"}`
+		}
+		return `{"STATUS":"success"}`
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, "success", resp.Status)
+	c := invoice.NewClient(server.Client())
+
+	if err := c.Update(ctx, &invoice.Request{InvoiceID: "1", DeleteExistingItems: fastbill.Yes}); err != nil {
+		t.Error(err)
+	}
+	fastbilltest.JSONEqual(t, server.Last(t).Data, `{"INVOICE_ID":"1","DELETE_EXISTING_ITEMS":"1"}`)
+	if res, err := c.Complete(ctx, "1"); err != nil || res.InvoiceNumber != "00278" {
+		t.Errorf("Complete = %+v, %v", res, err)
+	}
+	for name, call := range map[string]func() error{
+		"invoice.delete": func() error { return c.Delete(ctx, "1") },
+		"invoice.cancel": func() error { return c.Cancel(ctx, "1") },
+		"invoice.lock":   func() error { return c.Lock(ctx, "1") },
+	} {
+		if err := call(); err != nil {
+			t.Errorf("%s: %v", name, err)
+		}
+		if got := server.Last(t); got.Service != name {
+			t.Errorf("service = %s, want %s", got.Service, name)
+		}
+		fastbilltest.JSONEqual(t, server.Last(t).Data, `{"INVOICE_ID":"1"}`)
+	}
+	if err := c.SendByEmail(ctx, &invoice.SendByEmailRequest{InvoiceID: "1", Recipient: invoice.Recipient{To: "a@example.com"}}); err != nil {
+		t.Error(err)
+	}
+	fastbilltest.JSONEqual(t, server.Last(t).Data, `{"INVOICE_ID":"1","RECIPIENT":{"TO":"a@example.com"}}`)
+	if res, err := c.SendByPost(ctx, "1"); err != nil || res.RemainingCredits != "12" {
+		t.Errorf("SendByPost = %+v, %v", res, err)
+	}
+	if res, err := c.SetPaid(ctx, &invoice.SetPaidRequest{InvoiceID: "1", PaidDate: "2026-09-30"}); err != nil || res.InvoiceNumber != "00278" {
+		t.Errorf("SetPaid = %+v, %v", res, err)
+	}
+	fastbilltest.JSONEqual(t, server.Last(t).Data, `{"INVOICE_ID":"1","PAID_DATE":"2026-09-30"}`)
 }
 
-type dummyErrorService struct {
-}
-
-func (c *dummyErrorService) DoRequest(_ request.Request) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func (c *dummyErrorService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func TestInvoiceErrorClientGet(t *testing.T) {
-	client := NewInvoiceClient(&dummyErrorService{})
-	_, err := client.Get(&parameter.Parameter{}, nil)
-	assert.Error(t, err)
-}
-
-func TestInvoiceErrorClientCreate(t *testing.T) {
-	client := NewInvoiceClient(&dummyErrorService{})
-	_, err := client.Create(&Request{})
-	assert.Error(t, err)
-}
-
-func TestInvoiceErrorClientUpdate(t *testing.T) {
-	client := NewInvoiceClient(&dummyErrorService{})
-	_, err := client.Update(&Request{})
-	assert.Error(t, err)
-}
-
-func TestInvoiceErrorClientDelete(t *testing.T) {
-	client := NewInvoiceClient(&dummyErrorService{})
-	_, err := client.Delete("1337")
-	assert.Error(t, err)
-}
-
-func TestInvoiceErrorClientComplete(t *testing.T) {
-	client := NewInvoiceClient(&dummyErrorService{})
-	_, err := client.Complete("1337")
-	assert.Error(t, err)
-}
-
-func TestInvoiceErrorClientCancel(t *testing.T) {
-	client := NewInvoiceClient(&dummyErrorService{})
-	_, err := client.Cancel("1337")
-	assert.Error(t, err)
-}
-
-func TestInvoiceErrorClientSendByMail(t *testing.T) {
-	client := NewInvoiceClient(&dummyErrorService{})
-	_, err := client.SendByEmail(&SendByMailRequest{
-		InvoiceID: "1337",
+func TestErrors(t *testing.T) {
+	server := fastbilltest.New(t, func(r fastbilltest.Received) string {
+		if r.Service == "invoice.cancel" {
+			return `{"STATUS":"failed"}`
+		}
+		return `{"ERRORS":["Invoice not found"]}`
 	})
-	assert.Error(t, err)
-}
-
-func TestInvoiceErrorClientSendByPost(t *testing.T) {
-	client := NewInvoiceClient(&dummyErrorService{})
-	_, err := client.SendByPost("1337")
-	assert.Error(t, err)
-}
-
-func TestInvoiceErrorClientSetPaid(t *testing.T) {
-	client := NewInvoiceClient(&dummyErrorService{})
-	_, err := client.SetPaid(&SetPaidRequest{
-		InvoiceID:     "1337",
-		PaidDate:      time.Now(),
-		PaymentMethod: "Cash",
-	})
-	assert.Error(t, err)
-}
-
-type dummyWrongStructService struct {
-}
-
-func (c *dummyWrongStructService) DoRequest(_ request.Request) (response.Response, error) {
-	return response.Response{
-		Response: true,
-	}, nil
-}
-
-func (c *dummyWrongStructService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func TestInvoiceWrongStructClientGet(t *testing.T) {
-	client := NewInvoiceClient(&dummyWrongStructService{})
-	_, err := client.Get(&parameter.Parameter{}, nil)
-	assert.Error(t, err)
-}
-
-func TestInvoiceWrongStructClientCreate(t *testing.T) {
-	client := NewInvoiceClient(&dummyWrongStructService{})
-	_, err := client.Create(&Request{})
-	assert.Error(t, err)
-}
-
-func TestInvoiceWrongStructClientUpdate(t *testing.T) {
-	client := NewInvoiceClient(&dummyWrongStructService{})
-	_, err := client.Update(&Request{})
-	assert.Error(t, err)
-}
-
-func TestInvoiceWrongStructClientDelete(t *testing.T) {
-	client := NewInvoiceClient(&dummyWrongStructService{})
-	_, err := client.Delete("1337")
-	assert.Error(t, err)
-}
-
-func TestInvoiceWrongStructClientComplete(t *testing.T) {
-	client := NewInvoiceClient(&dummyWrongStructService{})
-	_, err := client.Complete("1337")
-	assert.Error(t, err)
-}
-
-func TestInvoiceWrongStructClientCancel(t *testing.T) {
-	client := NewInvoiceClient(&dummyWrongStructService{})
-	_, err := client.Cancel("1337")
-	assert.Error(t, err)
-}
-
-func TestInvoiceWrongStructClientSendByMail(t *testing.T) {
-	client := NewInvoiceClient(&dummyWrongStructService{})
-	_, err := client.SendByEmail(&SendByMailRequest{
-		InvoiceID: "1337",
-	})
-	assert.Error(t, err)
-}
-
-func TestInvoiceWrongStructClientSendByPost(t *testing.T) {
-	client := NewInvoiceClient(&dummyWrongStructService{})
-	_, err := client.SendByPost("1337")
-	assert.Error(t, err)
-}
-
-func TestInvoiceWrongStructClientSetPaid(t *testing.T) {
-	client := NewInvoiceClient(&dummyWrongStructService{})
-	_, err := client.SetPaid(&SetPaidRequest{
-		InvoiceID:     "1337",
-		PaidDate:      time.Now(),
-		PaymentMethod: "Cash",
-	})
-	assert.Error(t, err)
+	c := invoice.NewClient(server.Client())
+	var apiErr *fastbill.APIError
+	if _, err := c.Get(ctx, fastbill.Page{}, nil); !errors.As(err, &apiErr) || apiErr.Messages[0] != "Invoice not found" {
+		t.Errorf("Get: %v", err)
+	}
+	if err := c.Cancel(ctx, "1"); !errors.As(err, &apiErr) {
+		t.Errorf("Cancel with failed status: %v", err)
+	}
 }

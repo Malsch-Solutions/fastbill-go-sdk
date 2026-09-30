@@ -1,117 +1,68 @@
+// Package estimate wraps the estimate.* services: estimates (offers) that
+// can be emailed and turned into invoices.
 package estimate
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all estimate api services
+// Client calls the estimate services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewEstimateClient creates a new estimate api client
-func NewEstimateClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns an estimate client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all estimates restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Estimate, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("estimate.get", parameter, filter)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Estimate, 0), err
+// Get lists estimates. A nil filter lists all.
+func (c *Client) Get(ctx context.Context, page fastbill.Page, filter *Filter) ([]Estimate, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest("estimate.get", page, filter), &res); err != nil {
+		return nil, err
 	}
-
-	var estimateResponse getResponse
-	err = mapstructure.Decode(res.Response, &estimateResponse)
-	if err != nil {
-		return make([]Estimate, 0), fmt.Errorf("failed to parse estimate response: %s", err.Error())
-	}
-
-	return estimateResponse.Estimates, nil
+	return res.Estimates, nil
 }
 
-// Create create a estimate
-func (c *Client) Create(estimate *Request) (CreateResponse, error) {
-
-	var responseEstimate CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("estimate.create", estimate)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseEstimate, err
+// Create creates an estimate.
+func (c *Client) Create(ctx context.Context, req *Request) (CreateResponse, error) {
+	var res CreateResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("estimate.create", req), &res); err != nil {
+		return res, err
 	}
-
-	err = mapstructure.Decode(res.Response, &responseEstimate)
-	if err != nil {
-		return responseEstimate, fmt.Errorf("failed to parse estimate response: %s", err.Error())
-	}
-
-	return responseEstimate, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("estimate.create")
 }
 
-// Delete delete a estimate
-func (c *Client) Delete(estimateID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("estimate.delete", deleteRequest{EstimateID: estimateID})
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return false, err
-	}
-
-	var deleteRes deleteResponse
-
-	err = mapstructure.Decode(res.Response, &deleteRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse estimate response: %s", err.Error())
-	}
-
-	return deleteRes.Status == "success", nil
+// Delete deletes an estimate.
+func (c *Client) Delete(ctx context.Context, estimateID fastbill.ID) error {
+	return c.status(ctx, "estimate.delete", idRequest{EstimateID: estimateID})
 }
 
-// CreateInvoice create an invoice out of an estimate
-func (c *Client) CreateInvoice(estimateID string) (CreateInvoiceResponse, error) {
-	var createInvoiceResponse CreateInvoiceResponse
-
-	fastBillRequest := request.NewRequestWithData("estimate.createinvoice", createInvoiceRequest{EstimateID: estimateID})
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return createInvoiceResponse, err
+// CreateInvoice writes an invoice from an estimate.
+func (c *Client) CreateInvoice(ctx context.Context, estimateID fastbill.ID) (CreateInvoiceResponse, error) {
+	var res CreateInvoiceResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("estimate.createinvoice", idRequest{EstimateID: estimateID}), &res); err != nil {
+		return res, err
 	}
-
-	err = mapstructure.Decode(res.Response, &createInvoiceResponse)
-	if err != nil {
-		return createInvoiceResponse, fmt.Errorf("failed to parse estimate response: %s", err.Error())
+	// FastBill documents only INVOICE_ID here; check STATUS if it is sent.
+	if res.Status != "" {
+		return res, fastbill.StatusResponse{Status: res.Status}.Err("estimate.createinvoice")
 	}
-
-	return createInvoiceResponse, nil
+	return res, nil
 }
 
-// SendByEmail send an estimate by email
-func (c *Client) SendByEmail(sendByMailRequest *SendByMailRequest) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("estimate.sendbyemail", sendByMailRequest)
-	res, err := c.client.DoRequest(fastBillRequest)
+// SendByEmail emails the estimate as PDF.
+func (c *Client) SendByEmail(ctx context.Context, req *SendByEmailRequest) error {
+	return c.status(ctx, "estimate.sendbyemail", req)
+}
 
-	if err != nil {
-		return false, err
+func (c *Client) status(ctx context.Context, service string, data any) error {
+	var res fastbill.StatusResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest(service, data), &res); err != nil {
+		return err
 	}
-
-	var sendByMailRes sendByMailResponse
-
-	err = mapstructure.Decode(res.Response, &sendByMailRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse estimate response: %s", err.Error())
-	}
-
-	return sendByMailRes.Status == "success", nil
+	return res.Err(service)
 }

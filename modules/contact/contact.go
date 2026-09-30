@@ -1,99 +1,56 @@
+// Package contact wraps the contact.* services: the contact persons of a
+// customer.
 package contact
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all contact api services
+// Client calls the contact services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewContactClient creates a new contact api client
-func NewContactClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns a contact client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all contacts restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Contact, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("contact.get", parameter, filter)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Contact, 0), err
+// Get lists contacts. A nil filter lists all.
+func (c *Client) Get(ctx context.Context, page fastbill.Page, filter *Filter) ([]Contact, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest("contact.get", page, filter), &res); err != nil {
+		return nil, err
 	}
-
-	var contactResponse getResponse
-	err = mapstructure.Decode(res.Response, &contactResponse)
-	if err != nil {
-		return make([]Contact, 0), fmt.Errorf("failed to parse contact response: %s", err.Error())
-	}
-
-	return contactResponse.Contacts, nil
+	return res.Contacts, nil
 }
 
-// Create create a contact
-func (c *Client) Create(contact *Contact) (CreateResponse, error) {
-
-	var responseContact CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("contact.create", contact)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseContact, err
+// Create adds a contact to the customer contact.CustomerID.
+func (c *Client) Create(ctx context.Context, contact *Contact) (CreateResponse, error) {
+	var res CreateResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("contact.create", contact), &res); err != nil {
+		return res, err
 	}
-
-	err = mapstructure.Decode(res.Response, &responseContact)
-	if err != nil {
-		return responseContact, fmt.Errorf("failed to parse contact response: %s", err.Error())
-	}
-
-	return responseContact, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("contact.create")
 }
 
-// Update update a contact
-func (c *Client) Update(contact *Contact) (UpdateResponse, error) {
-
-	var responseContact UpdateResponse
-
-	fastBillRequest := request.NewRequestWithData("contact.update", contact)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseContact, err
-	}
-
-	err = mapstructure.Decode(res.Response, &responseContact)
-	if err != nil {
-		return responseContact, fmt.Errorf("failed to parse contact response: %s", err.Error())
-	}
-
-	return responseContact, nil
+// Update changes the contact with contact.ContactID of the customer
+// contact.CustomerID. Only the fields that are set are sent.
+func (c *Client) Update(ctx context.Context, contact *Contact) error {
+	return c.status(ctx, "contact.update", contact)
 }
 
-// Delete delete a contact
-func (c *Client) Delete(contactID string, customerID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("contact.delete", deleteRequest{ContactID: contactID, CustomerID: customerID})
-	res, err := c.client.DoRequest(fastBillRequest)
+// Delete deletes a contact of a customer.
+func (c *Client) Delete(ctx context.Context, contactID, customerID fastbill.ID) error {
+	return c.status(ctx, "contact.delete", idRequest{ContactID: contactID, CustomerID: customerID})
+}
 
-	if err != nil {
-		return false, err
+func (c *Client) status(ctx context.Context, service string, data any) error {
+	var res fastbill.StatusResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest(service, data), &res); err != nil {
+		return err
 	}
-
-	var deleteRes deleteResponse
-
-	err = mapstructure.Decode(res.Response, &deleteRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse contact response: %s", err.Error())
-	}
-
-	return deleteRes.Status == "success", nil
+	return res.Err(service)
 }

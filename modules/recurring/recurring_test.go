@@ -1,157 +1,118 @@
-package recurring
+package recurring_test
 
 import (
+	"context"
 	"errors"
-	"io"
 	"testing"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/response"
-	"github.com/stretchr/testify/assert"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/internal/fastbilltest"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/recurring"
 )
 
-type dummyService struct {
-}
+var ctx = context.Background()
 
-func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Response, error) {
+// A recurring invoice as FastBill sends it: IDs and text as strings,
+// amounts as numbers, an empty list as {}.
+const recurringJSON = `{
+	"INVOICE_ID": "620", "TYPE": "outgoing", "CUSTOMER_ID": "59", "CUSTOMER_COSTCENTER_ID": "0",
+	"CURRENCY_CODE": "EUR", "BASE_CURRENCY_CODE": "EUR", "EXCHANGE_RATE": "1.0000",
+	"TEMPLATE_ID": "3", "INTROTEXT": "Monthly support", "IS_CANCELED": "0", "IS_GROSS": 1,
+	"FREQUENCY": "monthly", "START_DATE": "2026-10-01", "OCCURENCES": "12", "OUTPUT_TYPE": "draft", "EMAIL_NOTIFY": "1",
+	"CASH_DISCOUNT_PERCENT": 2.5, "CASH_DISCOUNT_DAYS": 10,
+	"SUB_TOTAL": 1234.56, "VAT_TOTAL": 234.57, "TOTAL": 1469.13,
+	"VAT_ITEMS": {},
+	"ITEMS": {"0": {"INVOICE_ITEM_ID": 71, "DESCRIPTION": "Support", "QUANTITY": 1, "UNIT_PRICE": 1234.56, "VAT_PERCENT": 19, "SORT_ORDER": "1"}}
+}`
 
-	if fastBillRequest.Service == "recurring.get" {
-		return response.Response{
-			Response: getResponse{Recurrings: []Recurring{
-				{},
-			}},
-		}, nil
+func TestGet(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"INVOICES":[` + recurringJSON + `]}` })
+	list, err := recurring.NewClient(server.Client()).Get(ctx, fastbill.Page{Limit: 10}, &recurring.Filter{InvoiceID: "620"})
+	if err != nil {
+		t.Fatal(err)
 	}
-
-	if fastBillRequest.Service == "recurring.create" {
-		return response.Response{
-			Response: CreateResponse{InvoiceID: 10, Status: "success"},
-		}, nil
+	if len(list) != 1 {
+		t.Fatalf("recurring = %+v", list)
 	}
-
-	if fastBillRequest.Service == "recurring.update" {
-		return response.Response{
-			Response: UpdateResponse{Status: "success"},
-		}, nil
+	r := list[0]
+	if r.InvoiceID != "620" || r.Frequency != recurring.FrequencyMonthly || r.Occurrences != "12" || !r.EmailNotify.Bool() ||
+		!r.IsGross.Bool() || r.IsCanceled.Bool() || r.CashDiscountPercent != "2.5" || r.Total != "1469.13" || r.ExchangeRate != "1.0000" {
+		t.Errorf("recurring = %+v", r)
 	}
-
-	if fastBillRequest.Service == "recurring.delete" {
-		return response.Response{
-			Response: deleteResponse{Status: "success"},
-		}, nil
+	if len(r.VatItems) != 0 || len(r.Items) != 1 || r.Items[0].InvoiceItemID != "71" || r.Items[0].UnitPrice != "1234.56" {
+		t.Errorf("vat items = %v, items = %+v", r.VatItems, r.Items)
 	}
-
-	return response.Response{}, errors.New("unknown service")
-
+	got := server.Last(t)
+	if got.Service != "recurring.get" || got.Limit != 10 {
+		t.Errorf("request = %+v", got)
+	}
+	fastbilltest.JSONEqual(t, got.Filter, `{"INVOICE_ID":"620"}`)
 }
 
-func (c *dummyService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
+func TestCreate(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"STATUS":"success","INVOICE_ID":621}` })
+	res, err := recurring.NewClient(server.Client()).Create(ctx, &recurring.Request{
+		CustomerID:  "59",
+		StartDate:   "2026-10-01",
+		Frequency:   recurring.FrequencyMonthly,
+		Occurrences: fastbill.NewInt(0),
+		OutputType:  "draft",
+		EmailNotify: fastbill.Yes,
+		Items:       []recurring.Item{{Description: "Support", Quantity: fastbill.NewInt(1), UnitPrice: fastbill.NewNumber(99.9), VatPercent: fastbill.NewInt(19)}},
+	})
+	if err != nil || res.InvoiceID != "621" {
+		t.Fatalf("Create = %+v, %v", res, err)
+	}
+	got := server.Last(t)
+	if got.Service != "recurring.create" {
+		t.Errorf("service = %s", got.Service)
+	}
+	fastbilltest.JSONEqual(t, got.Data, `{
+		"CUSTOMER_ID": "59", "START_DATE": "2026-10-01", "FREQUENCY": "monthly", "OCCURENCES": 0,
+		"OUTPUT_TYPE": "draft", "EMAIL_NOTIFY": "1",
+		"ITEMS": [{"DESCRIPTION": "Support", "QUANTITY": 1, "UNIT_PRICE": 99.9, "VAT_PERCENT": 19}]
+	}`)
 }
 
-func TestNewRecurringClient(t *testing.T) {
-	client := NewRecurringClient(&dummyService{})
-	assert.IsType(t, &Client{}, client)
+func TestUpdateAndDelete(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"STATUS":"success"}` })
+	c := recurring.NewClient(server.Client())
+
+	if err := c.Update(ctx, &recurring.Request{InvoiceID: "620", DeleteExistingItems: fastbill.Yes, Frequency: recurring.Frequency3Months}); err != nil {
+		t.Error(err)
+	}
+	got := server.Last(t)
+	if got.Service != "recurring.update" {
+		t.Errorf("service = %s", got.Service)
+	}
+	fastbilltest.JSONEqual(t, got.Data, `{"INVOICE_ID":"620","DELETE_EXISTING_ITEMS":"1","FREQUENCY":"3 months"}`)
+
+	if err := c.Delete(ctx, "620"); err != nil {
+		t.Error(err)
+	}
+	got = server.Last(t)
+	if got.Service != "recurring.delete" {
+		t.Errorf("service = %s", got.Service)
+	}
+	fastbilltest.JSONEqual(t, got.Data, `{"INVOICE_ID":"620"}`)
 }
 
-func TestRecurringClientGet(t *testing.T) {
-	client := NewRecurringClient(&dummyService{})
-	resp, err := client.Get(&parameter.Parameter{}, nil)
-	assert.NoError(t, err)
-	assert.IsType(t, []Recurring{}, resp)
-	assert.Len(t, resp, 1)
-}
-
-func TestRecurringClientCreate(t *testing.T) {
-	client := NewRecurringClient(&dummyService{})
-	resp, err := client.Create(&Request{})
-	assert.NoError(t, err)
-	assert.IsType(t, CreateResponse{}, resp)
-}
-
-func TestRecurringClientUpdate(t *testing.T) {
-	client := NewRecurringClient(&dummyService{})
-	resp, err := client.Update(&Request{})
-	assert.NoError(t, err)
-	assert.IsType(t, UpdateResponse{}, resp)
-}
-
-func TestRecurringClientDelete(t *testing.T) {
-	client := NewRecurringClient(&dummyService{})
-	resp, err := client.Delete("1337")
-	assert.NoError(t, err)
-	assert.True(t, resp)
-}
-
-type dummyErrorService struct {
-}
-
-func (c *dummyErrorService) DoRequest(_ request.Request) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func (c *dummyErrorService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func TestRecurringErrorClientGet(t *testing.T) {
-	client := NewRecurringClient(&dummyErrorService{})
-	_, err := client.Get(&parameter.Parameter{}, nil)
-	assert.Error(t, err)
-}
-
-func TestRecurringErrorClientCreate(t *testing.T) {
-	client := NewRecurringClient(&dummyErrorService{})
-	_, err := client.Create(&Request{})
-	assert.Error(t, err)
-}
-
-func TestRecurringErrorClientUpdate(t *testing.T) {
-	client := NewRecurringClient(&dummyErrorService{})
-	_, err := client.Update(&Request{})
-	assert.Error(t, err)
-}
-
-func TestRecurringErrorClientDelete(t *testing.T) {
-	client := NewRecurringClient(&dummyErrorService{})
-	_, err := client.Delete("1337")
-	assert.Error(t, err)
-}
-
-type dummyWrongStructService struct {
-}
-
-func (c *dummyWrongStructService) DoRequest(_ request.Request) (response.Response, error) {
-	return response.Response{
-		Response: true,
-	}, nil
-}
-
-func (c *dummyWrongStructService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func TestRecurringWrongStructClientGet(t *testing.T) {
-	client := NewRecurringClient(&dummyWrongStructService{})
-	_, err := client.Get(&parameter.Parameter{}, nil)
-	assert.Error(t, err)
-}
-
-func TestRecurringWrongStructClientCreate(t *testing.T) {
-	client := NewRecurringClient(&dummyWrongStructService{})
-	_, err := client.Create(&Request{})
-	assert.Error(t, err)
-}
-
-func TestRecurringWrongStructClientUpdate(t *testing.T) {
-	client := NewRecurringClient(&dummyWrongStructService{})
-	_, err := client.Update(&Request{})
-	assert.Error(t, err)
-}
-
-func TestRecurringWrongStructClientDelete(t *testing.T) {
-	client := NewRecurringClient(&dummyWrongStructService{})
-	_, err := client.Delete("1337")
-	assert.Error(t, err)
+func TestErrors(t *testing.T) {
+	server := fastbilltest.New(t, func(r fastbilltest.Received) string {
+		if r.Service == "recurring.update" {
+			return `{"STATUS":"failed"}`
+		}
+		return `{"ERRORS":["Invoice not found"]}`
+	})
+	c := recurring.NewClient(server.Client())
+	var apiErr *fastbill.APIError
+	if _, err := c.Get(ctx, fastbill.Page{}, nil); !errors.As(err, &apiErr) || apiErr.Messages[0] != "Invoice not found" {
+		t.Errorf("Get: %v", err)
+	}
+	if err := c.Update(ctx, &recurring.Request{InvoiceID: "1"}); !errors.As(err, &apiErr) {
+		t.Errorf("Update with failed status: %v", err)
+	}
+	if err := c.Delete(ctx, "1"); !errors.As(err, &apiErr) {
+		t.Errorf("Delete: %v", err)
+	}
 }

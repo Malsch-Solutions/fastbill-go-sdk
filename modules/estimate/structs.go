@@ -1,128 +1,143 @@
 package estimate
 
-// Filter available invoice filter
+import (
+	"encoding/json"
+
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
+)
+
+// States of an estimate (STATE).
+const (
+	StateCreated     = "a"
+	StateSent        = "b"
+	StateNegotiation = "c"
+	StateAccepted    = "d"
+	StateRejected    = "e"
+	StateInvoiced    = "f"
+)
+
+// Filter narrows estimate.get. Dates are YYYY-MM-DD.
 type Filter struct {
-	CustomerID        string `json:"CUSTOMER_ID,omitempty"`         // Customer ID
-	EstimateID        string `json:"ESTIMATE_ID,omitempty"`         // Estimate ID
-	EstimateNumber    string `json:"ESTIMATE_NUMBER,omitempty"`     // Estimate number
-	StartEstimateDate string `json:"START_ESTIMATE_DATE,omitempty"` // Estimates from a specific date
-	EndEstimateDate   string `json:"END_ESTIMATE_DATE,omitempty"`   //Estimates until a specific date
+	CustomerID     fastbill.ID `json:"CUSTOMER_ID,omitempty"`
+	EstimateID     fastbill.ID `json:"ESTIMATE_ID,omitempty"`
+	EstimateNumber string      `json:"ESTIMATE_NUMBER,omitempty"`
+	StartDate      string      `json:"START_DATE,omitempty"`
+	EndDate        string      `json:"END_DATE,omitempty"`
 }
 
-// Estimate fastbill estimate
+// Estimate is an estimate as estimate.get returns it.
 type Estimate struct {
-	EstimateID           string    `json:"ESTIMATE_ID" mapstructure:"ESTIMATE_ID"`
-	State                string    `json:"STATE" mapstructure:"STATE"`
-	CustomerID           string    `json:"CUSTOMER_ID" mapstructure:"CUSTOMER_ID"`
-	CustomerNumber       string    `json:"CUSTOMER_NUMBER" mapstructure:"CUSTOMER_NUMBER"`
-	CustomerCostCenterID string    `json:"CUSTOMER_COSTCENTER_ID" mapstructure:"CUSTOMER_COSTCENTER_ID"`
-	ProjectID            string    `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
-	Organization         string    `json:"ORGANIZATION" mapstructure:"ORGANIZATION"`
-	Salutation           string    `json:"SALUTATION" mapstructure:"SALUTATION"`
-	FirstName            string    `json:"FIRST_NAME" mapstructure:"FIRST_NAME"`
-	LastName             string    `json:"LAST_NAME" mapstructure:"LAST_NAME"`
-	Address              string    `json:"ADDRESS" mapstructure:"ADDRESS"`
-	Address2             string    `json:"ADDRESS_2" mapstructure:"ADDRESS_2"`
-	ZipCode              string    `json:"ZIPCODE" mapstructure:"ZIPCODE"`
-	City                 string    `json:"CITY" mapstructure:"CITY"`
-	InvoiceTitle         string    `json:"INVOICE_TITLE" mapstructure:"INVOICE_TITLE"`
-	PaymentType          string    `json:"PAYMENT_TYPE" mapstructure:"PAYMENT_TYPE"`
-	BankName             string    `json:"BANK_NAME" mapstructure:"BANK_NAME"`
-	BankAccountNumber    string    `json:"BANK_ACCOUNT_NUMBER" mapstructure:"BANK_ACCOUNT_NUMBER"`
-	BankCode             string    `json:"BANK_CODE" mapstructure:"BANK_CODE"`
-	BankAccountOwner     string    `json:"BANK_ACCOUNT_OWNER" mapstructure:"BANK_ACCOUNT_OWNER"`
-	BankIban             string    `json:"BANK_IBAN" mapstructure:"BANK_IBAN"`
-	BankBic              string    `json:"BANK_BIC" mapstructure:"BANK_BIC"`
-	CountryCode          string    `json:"COUNTRY_CODE" mapstructure:"COUNTRY_CODE"`
-	VatID                string    `json:"VAT_ID" mapstructure:"VAT_ID"`
-	CurrencyCode         string    `json:"CURRENCY_CODE" mapstructure:"CURRENCY_CODE"`
-	TemplateID           string    `json:"TEMPLATE_ID" mapstructure:"TEMPLATE_ID"`
-	EstimateNumber       string    `json:"ESTIMATE_NUMBER" mapstructure:"ESTIMATE_NUMBER"`
-	IntroText            string    `json:"INTROTEXT" mapstructure:"INTROTEXT"`
-	EstimateDate         string    `json:"ESTIMATE_DATE" mapstructure:"ESTIMATE_DATE"`
-	DueDate              string    `json:"DUE_DATE" mapstructure:"DUE_DATE"`
-	SubTotal             int       `json:"SUB_TOTAL" mapstructure:"SUB_TOTAL"`
-	VatTotal             float64   `json:"VAT_TOTAL" mapstructure:"VAT_TOTAL"`
-	VatItems             []VatItem `json:"VAT_ITEMS" mapstructure:"VAT_ITEMS"`
-	Items                []Item    `json:"ITEMS" mapstructure:"ITEMS"`
-	Total                float64   `json:"TOTAL" mapstructure:"TOTAL"`
-	DocumentURL          string    `json:"DOCUMENT_URL" mapstructure:"DOCUMENT_URL"`
+	EstimateID fastbill.ID `json:"ESTIMATE_ID"`
+	// State is one of the State constants.
+	State                string      `json:"STATE"`
+	CustomerID           fastbill.ID `json:"CUSTOMER_ID"`
+	CustomerNumber       string      `json:"CUSTOMER_NUMBER"`
+	CustomerCostCenterID fastbill.ID `json:"CUSTOMER_COSTCENTER_ID"`
+	ProjectID            fastbill.ID `json:"PROJECT_ID"`
+	Organization         string      `json:"ORGANIZATION"`
+	Salutation           string      `json:"SALUTATION"`
+	FirstName            string      `json:"FIRST_NAME"`
+	LastName             string      `json:"LAST_NAME"`
+	Address              string      `json:"ADDRESS"`
+	Address2             string      `json:"ADDRESS_2"`
+	ZipCode              string      `json:"ZIPCODE"`
+	City                 string      `json:"CITY"`
+	InvoiceTitle         string      `json:"INVOICE_TITLE"`
+	// PaymentType is 1 transfer, 2 direct debit, 3 cash, 4 PayPal,
+	// 5 advance payment, 6 credit card.
+	PaymentType       fastbill.Number `json:"PAYMENT_TYPE"`
+	BankName          string          `json:"BANK_NAME"`
+	BankAccountNumber string          `json:"BANK_ACCOUNT_NUMBER"`
+	BankCode          string          `json:"BANK_CODE"`
+	BankAccountOwner  string          `json:"BANK_ACCOUNT_OWNER"`
+	BankIBAN          string          `json:"BANK_IBAN"`
+	BankBIC           string          `json:"BANK_BIC"`
+	CountryCode       string          `json:"COUNTRY_CODE"`
+	VatID             string          `json:"VAT_ID"`
+	CurrencyCode      string          `json:"CURRENCY_CODE"`
+	BaseCurrencyCode  string          `json:"BASE_CURRENCY_CODE"`
+	// ExchangeRate converts to BaseCurrencyCode: base amount = amount ÷
+	// ExchangeRate. It is 1 if both currencies are the same.
+	ExchangeRate   fastbill.Number        `json:"EXCHANGE_RATE"`
+	TemplateID     fastbill.ID            `json:"TEMPLATE_ID"`
+	EstimateNumber string                 `json:"ESTIMATE_NUMBER"`
+	IntroText      string                 `json:"INTROTEXT"`
+	EstimateDate   string                 `json:"ESTIMATE_DATE"`
+	DueDate        string                 `json:"DUE_DATE"`
+	SubTotal       fastbill.Number        `json:"SUB_TOTAL"`
+	VatTotal       fastbill.Number        `json:"VAT_TOTAL"`
+	VatItems       fastbill.List[VatItem] `json:"VAT_ITEMS"`
+	Items          fastbill.List[Item]    `json:"ITEMS"`
+	Total          fastbill.Number        `json:"TOTAL"`
+	DocumentURL    string                 `json:"DOCUMENT_URL"`
 }
 
-// Request fastbill estimate request
-type Request struct {
-	CustomerID           string `json:"CUSTOMER_ID,omitempty" mapstructure:"CUSTOMER_ID"`
-	CustomerCostCenterID string `json:"CUSTOMER_COSTCENTER_ID,omitempty" mapstructure:"CUSTOMER_COSTCENTER_ID"`
-	TemplateID           string `json:"TEMPLATE_ID,omitempty" mapstructure:"TEMPLATE_ID"`
-	TemplateHASH         string `json:"TEMPLATE_HASH,omitempty" mapstructure:"TEMPLATE_HASH"`
-	Items                []Item `json:"ITEMS,omitempty" mapstructure:"ITEMS"`
-}
-
-// VatItem invoice vat item
-type VatItem struct {
-	VatPercent  string  `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
-	CompleteNet float64 `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
-	VatValue    float64 `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
-}
-
-// Item invoice item
+// Item is a line of an estimate.
 type Item struct {
-	EstimateItemID string        `json:"ESTIMATE_ITEM_ID,omitempty" mapstructure:"ESTIMATE_ITEM_ID"`
-	ArticleNumber  string        `json:"ARTICLE_NUMBER,omitempty" mapstructure:"ARTICLE_NUMBER"`
-	Description    string        `json:"DESCRIPTION,omitempty" mapstructure:"DESCRIPTION"`
-	Quantity       string        `json:"QUANTITY,omitempty" mapstructure:"QUANTITY"`
-	UnitPrice      string        `json:"UNIT_PRICE,omitempty" mapstructure:"UNIT_PRICE"`
-	VatPercent     string        `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
-	VatValue       float64       `json:"VAT_VALUE,omitempty" mapstructure:"VAT_VALUE"`
-	CompleteNet    float64       `json:"COMPLETE_NET,omitempty" mapstructure:"COMPLETE_NET"`
-	CompleteGross  float64       `json:"COMPLETE_GROSS,omitempty" mapstructure:"COMPLETE_GROSS"`
-	Category       []interface{} `json:"CATEGORY,omitempty" mapstructure:"CATEGORY"`
-	SortOrder      int           `json:"SORT_ORDER,omitempty" mapstructure:"SORT_ORDER"`
+	EstimateItemID fastbill.ID     `json:"ESTIMATE_ITEM_ID,omitempty"`
+	ArticleNumber  string          `json:"ARTICLE_NUMBER,omitempty"`
+	Description    string          `json:"DESCRIPTION,omitempty"`
+	Quantity       fastbill.Number `json:"QUANTITY,omitempty"`
+	UnitPrice      fastbill.Number `json:"UNIT_PRICE,omitempty"`
+	VatPercent     fastbill.Number `json:"VAT_PERCENT,omitempty"`
+	VatValue       fastbill.Number `json:"VAT_VALUE,omitempty"`
+	CompleteNet    fastbill.Number `json:"COMPLETE_NET,omitempty"`
+	CompleteGross  fastbill.Number `json:"COMPLETE_GROSS,omitempty"`
+	// Category is kept as sent: FastBill does not document its shape.
+	Category  json.RawMessage `json:"CATEGORY,omitempty"`
+	SortOrder fastbill.Number `json:"SORT_ORDER,omitempty"`
 }
 
-// CreateResponse invoice api response
+// VatItem sums up one VAT rate of an estimate.
+type VatItem struct {
+	VatPercent  fastbill.Number `json:"VAT_PERCENT"`
+	CompleteNet fastbill.Number `json:"COMPLETE_NET"`
+	VatValue    fastbill.Number `json:"VAT_VALUE"`
+}
+
+// Request is the data of estimate.create. CustomerID and Items are
+// required.
+type Request struct {
+	CustomerID           fastbill.ID `json:"CUSTOMER_ID,omitempty"`
+	CustomerCostCenterID fastbill.ID `json:"CUSTOMER_COSTCENTER_ID,omitempty"`
+	TemplateID           fastbill.ID `json:"TEMPLATE_ID,omitempty"`
+	TemplateHash         string      `json:"TEMPLATE_HASH,omitempty"`
+	Items                []Item      `json:"ITEMS,omitempty"`
+}
+
+// CreateResponse is the answer of estimate.create.
 type CreateResponse struct {
-	Status     string `json:"STATUS" mapstructure:"STATUS"`
-	EstimateID int    `json:"ESTIMATE_ID" mapstructure:"ESTIMATE_ID"`
+	Status     string      `json:"STATUS"`
+	EstimateID fastbill.ID `json:"ESTIMATE_ID"`
 }
 
-type createInvoiceRequest struct {
-	EstimateID string `json:"ESTIMATE_ID" mapstructure:"ESTIMATE_ID"`
-}
-
-// CreateInvoiceResponse invoice api response
+// CreateInvoiceResponse is the answer of estimate.createinvoice.
 type CreateInvoiceResponse struct {
-	InvoiceID int `json:"INVOICE_ID" mapstructure:"INVOICE_ID"`
+	Status    string      `json:"STATUS"`
+	InvoiceID fastbill.ID `json:"INVOICE_ID"`
+}
+
+// SendByEmailRequest is the data of estimate.sendbyemail.
+type SendByEmailRequest struct {
+	EstimateID fastbill.ID `json:"ESTIMATE_ID"`
+	Recipient  Recipient   `json:"RECIPIENT"`
+	Subject    string      `json:"SUBJECT,omitempty"`
+	Message    string      `json:"MESSAGE,omitempty"`
+	// ReceiptConfirmation (1) asks for a read receipt.
+	ReceiptConfirmation fastbill.Flag `json:"RECEIPT_CONFIRMATION,omitempty"`
+}
+
+// Recipient are the addresses of an email.
+type Recipient struct {
+	To  string `json:"TO,omitempty"`
+	Cc  string `json:"CC,omitempty"`
+	Bcc string `json:"BCC,omitempty"`
+}
+
+type idRequest struct {
+	EstimateID fastbill.ID `json:"ESTIMATE_ID"`
 }
 
 type getResponse struct {
-	Estimates []Estimate `json:"ESTIMATES" mapstructure:"ESTIMATES"`
-}
-
-type deleteRequest struct {
-	EstimateID string `json:"ESTIMATE_ID" mapstructure:"ESTIMATE_ID"`
-}
-
-type deleteResponse struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
-}
-
-// SendByMailRequest send by mail api request
-type SendByMailRequest struct {
-	EstimateID          string               `json:"ESTIMATE_ID,omitempty" mapstructure:"ESTIMATE_ID"`
-	Recipient           SendByMailRecipients `json:"RECIPIENT,omitempty" mapstructure:"RECIPIENT"`
-	Subject             string               `json:"SUBJECT,omitempty" mapstructure:"SUBJECT"`
-	Message             string               `json:"MESSAGE,omitempty" mapstructure:"MESSAGE"`
-	ReceiptConfirmation string               `json:"RECEIPT_CONFIRMATION,omitempty" mapstructure:"RECEIPT_CONFIRMATION"`
-}
-
-// SendByMailRecipients recipient of the mail
-type SendByMailRecipients struct {
-	To  string `json:"TO,omitempty" mapstructure:"TO"`
-	Cc  string `json:"CC,omitempty" mapstructure:"CC"`
-	Bcc string `json:"BCC,omitempty" mapstructure:"BCC"`
-}
-
-type sendByMailResponse struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
+	Estimates fastbill.List[Estimate] `json:"ESTIMATES"`
 }

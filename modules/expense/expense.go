@@ -1,61 +1,46 @@
+// Package expense wraps the expense.* services: incoming invoices (receipts)
+// booked as expenses, optionally with the receipt file attached.
 package expense
 
 import (
-	"fmt"
+	"context"
 	"io"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all expense api services
+// Client calls the expense services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewExpenseClient creates a new expense api client
-func NewExpenseClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns an expense client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all expenses restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Expense, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("expense.get", parameter, filter)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Expense, 0), err
+// Get lists expenses. A nil filter lists all.
+func (c *Client) Get(ctx context.Context, page fastbill.Page, filter *Filter) ([]Expense, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest("expense.get", page, filter), &res); err != nil {
+		return nil, err
 	}
-
-	var expenseResponse getResponse
-	err = mapstructure.Decode(res.Response, &expenseResponse)
-	if err != nil {
-		return make([]Expense, 0), fmt.Errorf("failed to parse expense response: %s", err.Error())
-	}
-
-	return expenseResponse.Expenses, nil
+	return res.Expenses, nil
 }
 
-// Create a expense
-func (c *Client) Create(req *Request, file io.Reader, fileName string) (CreateResponse, error) {
-
-	var responseDocument CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("expense.create", req)
-	res, err := c.client.DoMultiPartRequest(fastBillRequest, file, fileName)
-
-	if err != nil {
-		return responseDocument, err
+// Create books an expense and uploads file (the receipt) as fileName. The
+// file is optional: with a nil file only the data is sent.
+func (c *Client) Create(ctx context.Context, req *Request, file io.Reader, fileName string) (CreateResponse, error) {
+	var res CreateResponse
+	data := fastbill.DataRequest("expense.create", req)
+	var err error
+	if file == nil {
+		err = c.r.Do(ctx, data, &res)
+	} else {
+		err = c.r.DoMultipart(ctx, data, file, fileName, &res)
 	}
-
-	err = mapstructure.Decode(res.Response, &responseDocument)
 	if err != nil {
-		return responseDocument, fmt.Errorf("failed to parse document response: %s", err.Error())
+		return res, err
 	}
-
-	return responseDocument, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("expense.create")
 }

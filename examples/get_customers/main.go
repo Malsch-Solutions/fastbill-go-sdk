@@ -1,28 +1,29 @@
+// Command get_customers prints every customer of the FastBill account as JSON.
+//
+//	FASTBILL_EMAIL=… FASTBILL_API_KEY=… go run ./examples/get_customers
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"os"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/customer"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/customer"
 )
 
 func main() {
-	fastbillService := service.NewService(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FASTBILL_API_KEY"))
+	ctx := context.Background()
+	client := fastbill.NewClient(os.Getenv("FASTBILL_EMAIL"), os.Getenv("FASTBILL_API_KEY"))
+	customers := customer.NewClient(client)
 
-	customerClient := customer.NewCustomerClient(fastbillService)
-
-	customers, err := customerClient.Get(&parameter.Parameter{
-		Limit:  10,
-		Offset: 0,
-	}, nil)
-
+	all, err := fastbill.All(ctx, fastbill.MaxLimit, func(ctx context.Context, page fastbill.Page) ([]customer.Customer, error) {
+		return customers.Get(ctx, page, nil)
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	customerJSON, _ := json.Marshal(customers)
-	log.Println(string(customerJSON))
+	out, _ := json.MarshalIndent(all, "", "  ")
+	os.Stdout.Write(append(out, '\n'))
 }

@@ -1,61 +1,42 @@
+// Package document wraps the document.* services: the document inbox and
+// its folders.
 package document
 
 import (
-	"fmt"
+	"context"
 	"io"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all document api services
+// Client calls the document services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewDocumentClient creates a new document api client
-func NewDocumentClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns a document client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all documents restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) (Response, error) {
-	var documentResponse getResponse
-
-	fastBillRequest := request.NewRequestWithFilters("document.get", parameter, filter)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return documentResponse.Items, err
+// Get lists the folders and documents of the document inbox. A nil filter
+// lists all.
+func (c *Client) Get(ctx context.Context, page fastbill.Page, filter *Filter) (GetResponse, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest("document.get", page, filter), &res); err != nil {
+		return GetResponse{}, err
 	}
-
-	err = mapstructure.Decode(res.Response, &documentResponse)
-	if err != nil {
-		return documentResponse.Items, fmt.Errorf("failed to parse document response: %s", err.Error())
+	if res.Items != nil {
+		return *res.Items, nil
 	}
-
-	return documentResponse.Items, nil
+	return res.GetResponse, nil
 }
 
-// Create create a document
-func (c *Client) Create(document *Document, file io.Reader, fileName string) (CreateResponse, error) {
-
-	var responseDocument CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("document.create", document)
-	res, err := c.client.DoMultiPartRequest(fastBillRequest, file, fileName)
-
-	if err != nil {
-		return responseDocument, err
+// Create uploads file to the document inbox under fileName.
+func (c *Client) Create(ctx context.Context, req *Request, file io.Reader, fileName string) (CreateResponse, error) {
+	var res CreateResponse
+	if err := c.r.DoMultipart(ctx, fastbill.DataRequest("document.create", req), file, fileName, &res); err != nil {
+		return res, err
 	}
-
-	err = mapstructure.Decode(res.Response, &responseDocument)
-	if err != nil {
-		return responseDocument, fmt.Errorf("failed to parse document response: %s", err.Error())
-	}
-
-	return responseDocument, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("document.create")
 }

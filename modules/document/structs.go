@@ -1,40 +1,56 @@
 package document
 
-// Filter available invoice filter
+import "github.com/malsch-solutions/fastbill-go-sdk/v2"
+
+// Filter narrows document.get.
 type Filter struct {
-	FolderID string `json:"FOLDER_ID,omitempty"` // Folder ID
+	FolderID fastbill.ID `json:"FOLDER_ID,omitempty"`
 }
 
-// Folder fastbill document folder
+// GetResponse is the answer of document.get.
+type GetResponse struct {
+	Folders   fastbill.List[Folder]   `json:"FOLDERS"`
+	Documents fastbill.List[Document] `json:"DOCUMENTS"`
+}
+
+// Folder is a folder of the document inbox.
 type Folder struct {
-	FolderID       string `json:"FOLDER_ID" mapstructure:"FOLDER_ID"`
-	Name           string `json:"NAME" mapstructure:"NAME"`
-	ParentFolderID string `json:"PARENTFOLDER_ID" mapstructure:"PARENTFOLDER_ID"`
-	Created        string `json:"CREATED" mapstructure:"CREATED"`
-	ContentCount   string `json:"CONTENT_COUNT" mapstructure:"CONTENT_COUNT"`
+	FolderID       fastbill.ID `json:"FOLDER_ID"`
+	Name           string      `json:"NAME"`
+	ParentFolderID fastbill.ID `json:"PARENTFOLDER_ID"`
+	Created        string      `json:"CREATED"`
+	// ContentCount is the number of items in the folder.
+	ContentCount fastbill.Number `json:"CONTENT_COUNT"`
 }
 
-// Document fastbill document
+// Document is a document as document.get returns it.
 type Document struct {
-	DocumentID string `json:"DOCUMENT_ID" mapstructure:"DOCUMENT_ID"`
-	Type       string `json:"TYPE" mapstructure:"TYPE"`
-	Title      string `json:"TITLE" mapstructure:"TITLE"`
-	Date       string `json:"DATE" mapstructure:"DATE"`
-	Note       string `json:"NOTE" mapstructure:"NOTE"`
+	DocumentID fastbill.ID `json:"DOCUMENT_ID"`
+	Type       string      `json:"TYPE"`
+	Title      string      `json:"TITLE"`
+	// Date is YYYY-MM-DD.
+	Date string `json:"DATE"`
+	Note string `json:"NOTE"`
 }
 
-type getResponse struct {
-	Items Response `json:"ITEMS" mapstructure:"ITEMS"`
+// Request is the data of document.create.
+type Request struct {
+	Type  string `json:"TYPE,omitempty"`
+	Title string `json:"TITLE,omitempty"`
+	// Date is YYYY-MM-DD.
+	Date string `json:"DATE,omitempty"`
+	Note string `json:"NOTE,omitempty"`
 }
 
-// Response fastbill document api get response
-type Response struct {
-	Folders   map[string]Folder `json:"FOLDERS" mapstructure:"FOLDERS"`
-	Documents []Document        `json:"DOCUMENTS" mapstructure:"DOCUMENTS"`
-}
-
-// CreateResponse fastbill create response
+// CreateResponse is the answer of document.create.
 type CreateResponse struct {
-	DocumentID int    `json:"DOCUMENT_ID" mapstructure:"DOCUMENT_ID"`
-	Status     string `json:"STATUS" mapstructure:"STATUS"`
+	Status     string      `json:"STATUS"`
+	DocumentID fastbill.ID `json:"DOCUMENT_ID"`
+}
+
+// getResponse takes FOLDERS and DOCUMENTS directly in RESPONSE, as the
+// docs show, or wrapped in ITEMS, as the API has been seen to send them.
+type getResponse struct {
+	GetResponse
+	Items *GetResponse `json:"ITEMS"`
 }
