@@ -1,100 +1,64 @@
+// Package revenue wraps the revenue.* services: income booked without an
+// invoice written in FastBill, optionally with a document attached.
 package revenue
 
 import (
-	"fmt"
+	"context"
 	"io"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all revenue api services
+// Client calls the revenue services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewRevenueClient creates a new revenue api client
-func NewRevenueClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns a revenue client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all revenues restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Revenue, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("revenue.get", parameter, filter)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Revenue, 0), err
+// Get lists revenues. A nil filter lists all.
+func (c *Client) Get(ctx context.Context, page fastbill.Page, filter *Filter) ([]Revenue, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest("revenue.get", page, filter), &res); err != nil {
+		return nil, err
 	}
-
-	var revenueResponse getResponse
-	err = mapstructure.Decode(res.Response, &revenueResponse)
-	if err != nil {
-		return make([]Revenue, 0), fmt.Errorf("failed to parse revenue response: %s", err.Error())
-	}
-
-	return revenueResponse.Revenues, nil
+	return res.Revenues, nil
 }
 
-// Create create a revenue
-func (c *Client) Create(revenue *Request, file io.Reader, fileName string) (CreateResponse, error) {
-
-	var responseRevenue CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("revenue.create", revenue)
-	res, err := c.client.DoMultiPartRequest(fastBillRequest, file, fileName)
-
-	if err != nil {
-		return responseRevenue, err
+// Create books a revenue and uploads file as fileName. The file is
+// optional: with a nil file only the data is sent.
+func (c *Client) Create(ctx context.Context, req *Request, file io.Reader, fileName string) (CreateResponse, error) {
+	var res CreateResponse
+	data := fastbill.DataRequest("revenue.create", req)
+	var err error
+	if file == nil {
+		err = c.r.Do(ctx, data, &res)
+	} else {
+		err = c.r.DoMultipart(ctx, data, file, fileName, &res)
 	}
-
-	err = mapstructure.Decode(res.Response, &responseRevenue)
 	if err != nil {
-		return responseRevenue, fmt.Errorf("failed to parse revenue response: %s", err.Error())
+		return res, err
 	}
-
-	return responseRevenue, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("revenue.create")
 }
 
-// Delete delete a revenue
-func (c *Client) Delete(revenueID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("revenue.delete", deleteRequest{RevenueID: revenueID})
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return false, err
+// SetPaid marks a revenue as paid.
+func (c *Client) SetPaid(ctx context.Context, req *SetPaidRequest) (SetPaidResponse, error) {
+	var res SetPaidResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("revenue.setpaid", req), &res); err != nil {
+		return res, err
 	}
-
-	var deleteRes deleteResponse
-
-	err = mapstructure.Decode(res.Response, &deleteRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse revenue response: %s", err.Error())
-	}
-
-	return deleteRes.Status == "success", nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("revenue.setpaid")
 }
 
-// SetPaid set an revenue paid
-func (c *Client) SetPaid(setPaidRequest *SetPaidRequest) (SetPaidResponse, error) {
-
-	var setPaidResponse SetPaidResponse
-
-	fastBillRequest := request.NewRequestWithData("revenue.setpaid", setPaidRequest)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return setPaidResponse, err
+// Delete deletes a revenue.
+func (c *Client) Delete(ctx context.Context, invoiceID fastbill.ID) error {
+	var res fastbill.StatusResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("revenue.delete", idRequest{InvoiceID: invoiceID}), &res); err != nil {
+		return err
 	}
-
-	err = mapstructure.Decode(res.Response, &setPaidResponse)
-	if err != nil {
-		return setPaidResponse, fmt.Errorf("failed to parse setPaidRequest response: %s", err.Error())
-	}
-
-	return setPaidResponse, nil
+	return res.Err("revenue.delete")
 }

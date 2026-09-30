@@ -1,99 +1,56 @@
+// Package project wraps the project.* services: projects of a customer
+// with their tasks, which work times are booked on.
 package project
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all project api services
+// Client calls the project services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewProjectClient creates a new project api client
-func NewProjectClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns a project client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all projects restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter, filter *Filter) ([]Project, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("project.get", parameter, filter)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Project, 0), err
+// Get lists projects. A nil filter lists all.
+func (c *Client) Get(ctx context.Context, page fastbill.Page, filter *Filter) ([]Project, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest("project.get", page, filter), &res); err != nil {
+		return nil, err
 	}
-
-	var projectResponse getResponse
-	err = mapstructure.Decode(res.Response, &projectResponse)
-	if err != nil {
-		return make([]Project, 0), fmt.Errorf("failed to parse project response: %s", err.Error())
-	}
-
-	return projectResponse.Projects, nil
+	return res.Projects, nil
 }
 
-// Create create a project
-func (c *Client) Create(project *Project) (CreateResponse, error) {
-
-	var responseProject CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("project.create", project)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseProject, err
+// Create creates a project. ProjectName and CustomerID are required.
+func (c *Client) Create(ctx context.Context, project *Project) (CreateResponse, error) {
+	var res CreateResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("project.create", project), &res); err != nil {
+		return res, err
 	}
-
-	err = mapstructure.Decode(res.Response, &responseProject)
-	if err != nil {
-		return responseProject, fmt.Errorf("failed to parse project response: %s", err.Error())
-	}
-
-	return responseProject, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("project.create")
 }
 
-// Update update a project
-func (c *Client) Update(project *Project) (UpdateResponse, error) {
-
-	var responseProject UpdateResponse
-
-	fastBillRequest := request.NewRequestWithData("project.update", project)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseProject, err
-	}
-
-	err = mapstructure.Decode(res.Response, &responseProject)
-	if err != nil {
-		return responseProject, fmt.Errorf("failed to parse project response: %s", err.Error())
-	}
-
-	return responseProject, nil
+// Update changes the project with project.ProjectID. Only the fields that
+// are set are sent.
+func (c *Client) Update(ctx context.Context, project *Project) error {
+	return c.status(ctx, "project.update", project)
 }
 
-// Delete delete a project
-func (c *Client) Delete(projectID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("project.delete", deleteRequest{ProjectID: projectID})
-	res, err := c.client.DoRequest(fastBillRequest)
+// Delete deletes a project.
+func (c *Client) Delete(ctx context.Context, projectID fastbill.ID) error {
+	return c.status(ctx, "project.delete", idRequest{ProjectID: projectID})
+}
 
-	if err != nil {
-		return false, err
+func (c *Client) status(ctx context.Context, service string, data any) error {
+	var res fastbill.StatusResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest(service, data), &res); err != nil {
+		return err
 	}
-
-	var deleteRes deleteResponse
-
-	err = mapstructure.Decode(res.Response, &deleteRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse project response: %s", err.Error())
-	}
-
-	return deleteRes.Status == "success", nil
+	return res.Err(service)
 }

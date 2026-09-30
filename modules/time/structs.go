@@ -1,50 +1,48 @@
 package time
 
-// Filter available time filter
+import "github.com/malsch-solutions/fastbill-go-sdk/v2"
+
+// Filter narrows time.get. Dates are YYYY-MM-DD.
 type Filter struct {
-	CustomerID string `json:"CUSTOMER_ID,omitempty"`
-	ProjectID  string `json:"PROJECT_ID,omitempty"`
-	TaskID     string `json:"TASK_ID,omitempty"`
-	TimeID     string `json:"TIME_ID,omitempty"`
-	StartDate  string `json:"START_DATE,omitempty"`
-	EndDate    string `json:"END_DATE,omitempty"`
-	Date       string `json:"DATE,omitempty"`
+	CustomerID fastbill.ID `json:"CUSTOMER_ID,omitempty"`
+	ProjectID  fastbill.ID `json:"PROJECT_ID,omitempty"`
+	TaskID     fastbill.ID `json:"TASK_ID,omitempty"`
+	TimeID     fastbill.ID `json:"TIME_ID,omitempty"`
+	StartDate  string      `json:"START_DATE,omitempty"`
+	EndDate    string      `json:"END_DATE,omitempty"`
+	Date       string      `json:"DATE,omitempty"`
 }
 
-// Time fastbill time
+// Time is a time entry as time.get returns it, and the data of time.create
+// and time.update.
 type Time struct {
-	TimeID          string `json:"TIME_ID" mapstructure:"TIME_ID"`
-	TaskID          string `json:"TASK_ID" mapstructure:"TASK_ID"`
-	CustomerID      string `json:"CUSTOMER_ID" mapstructure:"CUSTOMER_ID"`
-	ProjectID       string `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
-	Date            string `json:"DATE" mapstructure:"DATE"`
-	StartTime       string `json:"START_TIME" mapstructure:"START_TIME"`
-	EndTime         string `json:"END_TIME" mapstructure:"END_TIME"`
-	Minutes         string `json:"MINUTES" mapstructure:"MINUTES"`
-	BillableMinutes string `json:"BILLABLE_MINUTES" mapstructure:"BILLABLE_MINUTES"`
-	Comment         string `json:"COMMENT" mapstructure:"COMMENT"`
+	// TimeID is required for Update and ignored by Create.
+	TimeID     fastbill.ID `json:"TIME_ID,omitempty"`
+	TaskID     fastbill.ID `json:"TASK_ID,omitempty"`
+	CustomerID fastbill.ID `json:"CUSTOMER_ID,omitempty"`
+	ProjectID  fastbill.ID `json:"PROJECT_ID,omitempty"`
+	// InvoiceID is the invoice the time was billed with; Get only.
+	InvoiceID fastbill.ID `json:"INVOICE_ID,omitempty"`
+	// Date is YYYY-MM-DD.
+	Date string `json:"DATE,omitempty"`
+	// StartTime and EndTime are YYYY-MM-DD hh:mm:ss.
+	StartTime       string          `json:"START_TIME,omitempty"`
+	EndTime         string          `json:"END_TIME,omitempty"`
+	Minutes         fastbill.Number `json:"MINUTES,omitempty"`
+	BillableMinutes fastbill.Number `json:"BILLABLE_MINUTES,omitempty"`
+	Comment         string          `json:"COMMENT,omitempty"`
 }
 
-// CreateResponse time api response
+// CreateResponse is the answer of time.create.
 type CreateResponse struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
-	TimeID int    `json:"TIME_ID" mapstructure:"TIME_ID"`
+	Status string      `json:"STATUS"`
+	TimeID fastbill.ID `json:"TIME_ID"`
 }
 
-// UpdateResponse time api response
-type UpdateResponse struct {
-	TimeID string `json:"TIME_ID" mapstructure:"TIME_ID"`
-	Status string `json:"STATUS" mapstructure:"STATUS"`
+type idRequest struct {
+	TimeID fastbill.ID `json:"TIME_ID"`
 }
 
 type getResponse struct {
-	Times []Time `json:"TIMES"`
-}
-
-type deleteRequest struct {
-	TimeID string `json:"TIME_ID"`
-}
-
-type deleteResponse struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
+	Times fastbill.List[Time] `json:"TIMES"`
 }

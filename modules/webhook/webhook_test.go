@@ -1,132 +1,95 @@
-package webhook
+package webhook_test
 
 import (
+	"context"
 	"errors"
-	"io"
 	"testing"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/response"
-	"github.com/stretchr/testify/assert"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/internal/fastbilltest"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/webhook"
 )
 
-type dummyService struct {
-}
+var ctx = context.Background()
 
-func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Response, error) {
-
-	if fastBillRequest.Service == "webhook.get" {
-		return response.Response{
-			Response: getResponse{Webhooks: []Webhook{
-				{},
-			}},
-		}, nil
+func TestGet(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string {
+		return `{"WEBHOOKS":[
+			{"WEBHOOK_ID": "15", "ENDPOINT": "https://example.com/hook", "TYPE": "url", "EVENTS": "customer.created,customer.updated"},
+			{"WEBHOOK_ID": "16", "ENDPOINT": "https://example.com/hook2", "TYPE": "url", "EVENTS": "invoice.created"}
+		]}`
+	})
+	webhooks, err := webhook.NewClient(server.Client()).Get(ctx, fastbill.Page{})
+	if err != nil {
+		t.Fatal(err)
 	}
-
-	if fastBillRequest.Service == "webhook.create" {
-		return response.Response{
-			Response: CreateResponse{WebhookID: 10, Status: "success"},
-		}, nil
+	if len(webhooks) != 2 {
+		t.Fatalf("webhooks = %+v", webhooks)
 	}
-
-	if fastBillRequest.Service == "webhook.delete" {
-		return response.Response{
-			Response: deleteResponse{Status: "success"},
-		}, nil
+	if w := webhooks[0]; w.WebhookID != "15" || w.Endpoint != "https://example.com/hook" || w.Type != webhook.TypeURL || w.Events != "customer.created,customer.updated" {
+		t.Errorf("webhook = %+v", w)
 	}
-
-	return response.Response{}, errors.New("unknown service")
-
+	if got := server.Last(t); got.Service != "webhook.get" || got.Filter != nil {
+		t.Errorf("request = %+v", got)
+	}
 }
 
-func (c *dummyService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
+func TestGetEmpty(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"WEBHOOKS":{}}` })
+	webhooks, err := webhook.NewClient(server.Client()).Get(ctx, fastbill.Page{})
+	if err != nil || len(webhooks) != 0 {
+		t.Errorf("Get = %+v, %v", webhooks, err)
+	}
 }
 
-func TestNewWebhookClient(t *testing.T) {
-	client := NewWebhookClient(&dummyService{})
-	assert.IsType(t, &Client{}, client)
+func TestCreate(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"STATUS":"success","WEBHOOK_ID":15}` })
+	res, err := webhook.NewClient(server.Client()).Create(ctx, &webhook.Request{
+		Type:     webhook.TypeURL,
+		Endpoint: "https://example.com/hook",
+		Events:   webhook.JoinEvents(webhook.CustomerCreated, webhook.InvoiceCompleted),
+	})
+	if err != nil || res.WebhookID != "15" {
+		t.Fatalf("Create = %+v, %v", res, err)
+	}
+	got := server.Last(t)
+	if got.Service != "webhook.create" {
+		t.Errorf("service = %s", got.Service)
+	}
+	fastbilltest.JSONEqual(t, got.Data, `{"TYPE":"url","ENDPOINT":"https://example.com/hook","EVENTS":"customer.created,invoice.completed"}`)
 }
 
-func TestWebhookClientGet(t *testing.T) {
-	client := NewWebhookClient(&dummyService{})
-	resp, err := client.Get(&parameter.Parameter{})
-	assert.NoError(t, err)
-	assert.IsType(t, []Webhook{}, resp)
-	assert.Len(t, resp, 1)
+func TestDelete(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"STATUS":"success"}` })
+	if err := webhook.NewClient(server.Client()).Delete(ctx, "15"); err != nil {
+		t.Fatal(err)
+	}
+	got := server.Last(t)
+	if got.Service != "webhook.delete" {
+		t.Errorf("service = %s", got.Service)
+	}
+	fastbilltest.JSONEqual(t, got.Data, `{"WEBHOOK_ID":"15"}`)
 }
 
-func TestWebhookClientCreate(t *testing.T) {
-	client := NewWebhookClient(&dummyService{})
-	resp, err := client.Create(&Webhook{})
-	assert.NoError(t, err)
-	assert.IsType(t, CreateResponse{}, resp)
-}
-
-func TestWebhookClientDelete(t *testing.T) {
-	client := NewWebhookClient(&dummyService{})
-	resp, err := client.Delete("1337")
-	assert.NoError(t, err)
-	assert.True(t, resp)
-}
-
-type dummyErrorService struct {
-}
-
-func (c *dummyErrorService) DoRequest(_ request.Request) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func (c *dummyErrorService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func TestWebhookErrorClientGet(t *testing.T) {
-	client := NewWebhookClient(&dummyErrorService{})
-	_, err := client.Get(&parameter.Parameter{})
-	assert.Error(t, err)
-}
-
-func TestWebhookErrorClientCreate(t *testing.T) {
-	client := NewWebhookClient(&dummyErrorService{})
-	_, err := client.Create(&Webhook{})
-	assert.Error(t, err)
-}
-
-func TestWebhookErrorClientDelete(t *testing.T) {
-	client := NewWebhookClient(&dummyErrorService{})
-	_, err := client.Delete("1337")
-	assert.Error(t, err)
-}
-
-type dummyWrongStructService struct {
-}
-
-func (c *dummyWrongStructService) DoRequest(_ request.Request) (response.Response, error) {
-	return response.Response{
-		Response: true,
-	}, nil
-}
-
-func (c *dummyWrongStructService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func TestWebhookWrongStructClientGet(t *testing.T) {
-	client := NewWebhookClient(&dummyWrongStructService{})
-	_, err := client.Get(&parameter.Parameter{})
-	assert.Error(t, err)
-}
-
-func TestWebhookWrongStructClientCreate(t *testing.T) {
-	client := NewWebhookClient(&dummyWrongStructService{})
-	_, err := client.Create(&Webhook{})
-	assert.Error(t, err)
-}
-
-func TestWebhookWrongStructClientDelete(t *testing.T) {
-	client := NewWebhookClient(&dummyWrongStructService{})
-	_, err := client.Delete("1337")
-	assert.Error(t, err)
+func TestErrors(t *testing.T) {
+	server := fastbilltest.New(t, func(r fastbilltest.Received) string {
+		switch r.Service {
+		case "webhook.delete":
+			return `{"STATUS":"failed"}`
+		case "webhook.create":
+			return `{"ERRORS":["Invalid endpoint"]}`
+		}
+		return `{"ERRORS":["Unauthorized"]}`
+	})
+	c := webhook.NewClient(server.Client())
+	var apiErr *fastbill.APIError
+	if _, err := c.Get(ctx, fastbill.Page{}); !errors.As(err, &apiErr) || apiErr.Messages[0] != "Unauthorized" {
+		t.Errorf("Get: %v", err)
+	}
+	if _, err := c.Create(ctx, &webhook.Request{Type: webhook.TypeURL}); !errors.As(err, &apiErr) || apiErr.Messages[0] != "Invalid endpoint" {
+		t.Errorf("Create: %v", err)
+	}
+	if err := c.Delete(ctx, "15"); !errors.As(err, &apiErr) {
+		t.Errorf("Delete with failed status: %v", err)
+	}
 }

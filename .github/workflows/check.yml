@@ -1,39 +1,30 @@
 name: Checks
-on: [ push ]
+on:
+  push:
+    branches: [main]
+  pull_request:
 jobs:
   test:
-    name: Go ${{ matrix.go }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    name: Go ${{ matrix.go }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        go: ['1.19', '1.20']
+        go: [oldstable, stable]
     steps:
-      - name: Go ${{ matrix.go }} on ${{ matrix.os }}
-        uses: actions/setup-go@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go }}
-      - name: Checkout source code
-        uses: actions/checkout@v3
-      - name: Setup
-        run: |
-          go install golang.org/x/lint/golint@latest
-          go install golang.org/x/tools/cmd/goimports@latest
-          go install honnef.co/go/tools/cmd/staticcheck@latest
-      - name: Run lint
-        run: golint -set_exit_status $(go list ./... | grep -v /vendor/)
-      - name: Run static check
-        run: staticcheck ./...
-      - name: Run vet
-        run: go vet ./...
-      - name: Run imports
-        run: |
-          output=$(goimports -l .)
-          echo $output >&2;
-          if  [[  ${#output} -ge 1 ]] ; then exit 1; else exit 0; fi
-      - name: Run tests
-        run: go test ./... -coverprofile=coverage.out -covermode=atomic
-      - name: Upload coverage to Codecov
-        if: ${{ matrix.os == 'ubuntu-latest' && matrix.go == '1.20'}}
-        run: bash <(curl -s https://codecov.io/bash)
-
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - run: go vet ./...
+      - run: go run honnef.co/go/tools/cmd/staticcheck@latest ./...
+      - run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+      - run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+      - name: Upload coverage
+        if: matrix.go == 'stable'
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false

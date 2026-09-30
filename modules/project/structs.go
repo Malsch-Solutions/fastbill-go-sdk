@@ -1,59 +1,56 @@
 package project
 
-// Filter available project filter
+import "github.com/malsch-solutions/fastbill-go-sdk/v2"
+
+// Filter narrows project.get.
 type Filter struct {
-	ProjectID  string `json:"PROJECT_ID,omitempty"`  //project id
-	CustomerID string `json:"CUSTOMER_ID,omitempty"` //customer id
+	ProjectID  fastbill.ID `json:"PROJECT_ID,omitempty"`
+	CustomerID fastbill.ID `json:"CUSTOMER_ID,omitempty"`
 }
 
-// Project fastbill project definition
+// Project is a project as project.get returns it, and the data of
+// project.create and project.update.
 type Project struct {
-	ProjectID            string `json:"PROJECT_ID,omitempty" mapstructure:"PROJECT_ID"`
-	ProjectName          string `json:"PROJECT_NAME,omitempty" mapstructure:"PROJECT_NAME"`
-	ProjectNumber        string `json:"PROJECT_NUMBER,omitempty" mapstructure:"PROJECT_NUMBER"`
-	CustomerID           string `json:"CUSTOMER_ID,omitempty" mapstructure:"CUSTOMER_ID"`
-	CustomerCostCenterID string `json:"CUSTOMER_COSTCENTER_ID,omitempty" mapstructure:"CUSTOMER_COSTCENTER_ID"`
-	HourPrice            string `json:"HOUR_PRICE,omitempty" mapstructure:"HOUR_PRICE"`
-	CurrencyCode         string `json:"CURRENCY_CODE,omitempty" mapstructure:"CURRENCY_CODE"`
-	VatPercent           string `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
-	StartDate            string `json:"START_DATE,omitempty" mapstructure:"START_DATE"`
-	EndDate              string `json:"END_DATE,omitempty" mapstructure:"END_DATE"`
-	Tasks                []Task `json:"TASKS,omitempty" mapstructure:"TASKS"`
+	// ProjectID is required for Update and ignored by Create.
+	ProjectID   fastbill.ID `json:"PROJECT_ID,omitempty"`
+	ProjectName string      `json:"PROJECT_NAME,omitempty"`
+	// ProjectNumber is not in the current FastBill docs.
+	ProjectNumber        string          `json:"PROJECT_NUMBER,omitempty"`
+	CustomerID           fastbill.ID     `json:"CUSTOMER_ID,omitempty"`
+	CustomerCostCenterID fastbill.ID     `json:"CUSTOMER_COSTCENTER_ID,omitempty"`
+	HourPrice            fastbill.Number `json:"HOUR_PRICE,omitempty"`
+	CurrencyCode         string          `json:"CURRENCY_CODE,omitempty"`
+	VatPercent           fastbill.Number `json:"VAT_PERCENT,omitempty"`
+	// StartDate and EndDate are YYYY-MM-DD.
+	StartDate string `json:"START_DATE,omitempty"`
+	EndDate   string `json:"END_DATE,omitempty"`
+	// Tasks are returned by Get; Create and Update do not take them.
+	Tasks fastbill.List[Task] `json:"TASKS,omitempty"`
 }
 
-// Task fastbill project task definition
+// Task is a task of a project.
 type Task struct {
-	TaskID       string `json:"TASK_ID,omitempty" mapstructure:"TASK_ID"`
-	TaskNumber   string `json:"TASK_NUMBER,omitempty" mapstructure:"TASK_NUMBER"`
-	TaskName     string `json:"TASK_NAME,omitempty" mapstructure:"TASK_NAME"`
-	Description  string `json:"DESCRIPTION,omitempty" mapstructure:"DESCRIPTION"`
-	Status       string `json:"STATUS,omitempty" mapstructure:"STATUS"`
-	Priority     string `json:"PRIORITY,omitempty" mapstructure:"PRIORITY"`
-	HourPrice    string `json:"HOUR_PRICE,omitempty" mapstructure:"HOUR_PRICE"`
-	CurrencyCode string `json:"CURRENCY_CODE,omitempty" mapstructure:"CURRENCY_CODE"`
-	VatPercent   int    `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
+	TaskID       fastbill.ID     `json:"TASK_ID"`
+	TaskNumber   string          `json:"TASK_NUMBER"`
+	TaskName     string          `json:"TASK_NAME"`
+	Description  string          `json:"DESCRIPTION"`
+	Status       string          `json:"STATUS"`
+	Priority     string          `json:"PRIORITY"`
+	HourPrice    fastbill.Number `json:"HOUR_PRICE"`
+	CurrencyCode string          `json:"CURRENCY_CODE"`
+	VatPercent   fastbill.Number `json:"VAT_PERCENT"`
 }
 
-// CreateResponse project api response
+// CreateResponse is the answer of project.create.
 type CreateResponse struct {
-	Status    string `json:"STATUS" mapstructure:"STATUS"`
-	ProjectID int    `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
+	Status    string      `json:"STATUS"`
+	ProjectID fastbill.ID `json:"PROJECT_ID"`
 }
 
-// UpdateResponse project api response
-type UpdateResponse struct {
-	ProjectID string `json:"PROJECT_ID" mapstructure:"PROJECT_ID"`
-	Status    string `json:"STATUS" mapstructure:"STATUS"`
+type idRequest struct {
+	ProjectID fastbill.ID `json:"PROJECT_ID"`
 }
 
 type getResponse struct {
-	Projects []Project `json:"PROJECTS"`
-}
-
-type deleteRequest struct {
-	ProjectID string `json:"PROJECT_ID"`
-}
-
-type deleteResponse struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
+	Projects fastbill.List[Project] `json:"PROJECTS"`
 }

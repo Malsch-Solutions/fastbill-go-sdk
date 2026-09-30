@@ -1,45 +1,90 @@
 package webhook
 
 import (
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/contact"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/customer"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/estimate"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/invoice"
+	"strings"
+
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/contact"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/customer"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/estimate"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/invoice"
 )
 
-// Webhook fastbill webhook definition
-type Webhook struct {
-	WebhookID string `json:"WEBHOOK_ID,omitempty" mapstructure:"WEBHOOK_ID"`
-	Endpoint  string `json:"ENDPOINT,omitempty" mapstructure:"ENDPOINT"`
-	Type      string `json:"TYPE,omitempty" mapstructure:"TYPE"`
-	Events    string `json:"EVENS,omitempty" mapstructure:"EVENS"` // customer.created,customer.updated,customer.deleted,invoice.created,invoice.completed,invoice.canceled,estimate.created,estimate.updated,contact.created,contact.updated,contact.deleted
+// TypeURL is the endpoint type (TYPE) for an HTTP endpoint, the only one
+// FastBill currently offers.
+const TypeURL = "url"
+
+// EventType names the event that triggers a notification.
+type EventType string
+
+// Event types a webhook can subscribe to.
+const (
+	CustomerCreated  EventType = "customer.created"
+	CustomerUpdated  EventType = "customer.updated"
+	CustomerDeleted  EventType = "customer.deleted"
+	InvoiceCreated   EventType = "invoice.created"
+	InvoiceCompleted EventType = "invoice.completed"
+	InvoiceCanceled  EventType = "invoice.canceled"
+	EstimateCreated  EventType = "estimate.created"
+	EstimateUpdated  EventType = "estimate.updated"
+	ContactCreated   EventType = "contact.created"
+	ContactUpdated   EventType = "contact.updated"
+	ContactDeleted   EventType = "contact.deleted"
+)
+
+// JoinEvents formats events as the comma-separated EVENTS value.
+func JoinEvents(events ...EventType) string {
+	names := make([]string, len(events))
+	for i, e := range events {
+		names[i] = string(e)
+	}
+	return strings.Join(names, ",")
 }
 
-// CreateResponse webhook api response
+// Webhook is a registered webhook as webhook.get returns it.
+type Webhook struct {
+	WebhookID fastbill.ID `json:"WEBHOOK_ID"`
+	Endpoint  string      `json:"ENDPOINT"`
+	Type      string      `json:"TYPE"`
+	// Events is a comma-separated list of event types.
+	Events string `json:"EVENTS"`
+}
+
+// Request is the data of webhook.create.
+type Request struct {
+	// Type is TypeURL.
+	Type     string `json:"TYPE"`
+	Endpoint string `json:"ENDPOINT"`
+	// Events is a comma-separated list of event types; see JoinEvents.
+	Events string `json:"EVENTS"`
+}
+
+// CreateResponse is the answer of webhook.create.
 type CreateResponse struct {
-	Status    string `json:"STATUS" mapstructure:"STATUS"`
-	WebhookID int    `json:"WEBHOOK_ID" mapstructure:"WEBHOOK_ID"`
+	Status    string      `json:"STATUS"`
+	WebhookID fastbill.ID `json:"WEBHOOK_ID"`
+}
+
+// Event is a notification FastBill sends to a webhook endpoint. It carries
+// the objects the event is about; the others are nil. FastBill sends the
+// object fields in lower case, which decode into the same structs as the
+// API responses.
+type Event struct {
+	// ID is the notification ID.
+	ID   fastbill.ID `json:"id"`
+	Type EventType   `json:"type"`
+	// Created is the time of the notification, YYYY-MM-DD hh:mm:ss.
+	Created  string             `json:"created"`
+	Customer *customer.Customer `json:"customer,omitempty"`
+	Contact  *contact.Contact   `json:"contact,omitempty"`
+	Invoice  *invoice.Invoice   `json:"invoice,omitempty"`
+	Estimate *estimate.Estimate `json:"estimate,omitempty"`
+}
+
+type idRequest struct {
+	WebhookID fastbill.ID `json:"WEBHOOK_ID"`
 }
 
 type getResponse struct {
-	Webhooks []Webhook `json:"WEBHOOKS"`
-}
-
-type deleteRequest struct {
-	WebhookID string `json:"WEBHOOK_ID"`
-}
-
-type deleteResponse struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
-}
-
-// Event fastbill webhook event
-type Event struct {
-	ID       int                `json:"id"`
-	Type     string             `json:"type"`
-	Customer *customer.Customer `json:"customer"`
-	Contact  *contact.Contact   `json:"contact"`
-	Invoice  invoice.Invoice    `json:"invoice"`
-	Estimate estimate.Estimate  `json:"estimate"`
-	Created  string             `json:"created"`
+	Webhooks fastbill.List[Webhook] `json:"WEBHOOKS"`
 }

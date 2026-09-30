@@ -1,43 +1,50 @@
 package article
 
-// Filter available article filter
+import "github.com/malsch-solutions/fastbill-go-sdk/v2"
+
+// Types of articles (TYPE).
+const (
+	TypeProduct        = "product"
+	TypeDigitalProduct = "digital_product"
+	TypeService        = "service"
+	TypeNone           = "none"
+)
+
+// Filter narrows article.get.
 type Filter struct {
-	ArticleNumber string `json:"ARTICLE_NUMBER,omitempty"` //Assigned article number
+	ArticleID     fastbill.ID `json:"ARTICLE_ID,omitempty"`
+	ArticleNumber string      `json:"ARTICLE_NUMBER,omitempty"`
 }
 
-// Article fastbill article definition
+// Article is a product or service as article.get returns it, and the data
+// of article.create and article.update.
 type Article struct {
-	ArticleID     string `json:"ARTICLE_ID,omitempty" mapstructure:"ARTICLE_ID"`
-	ArticleNumber string `json:"ARTICLE_NUMBER,omitempty" mapstructure:"ARTICLE_NUMBER"`
-	Title         string `json:"TITLE,omitempty" mapstructure:"TITLE"`
-	Description   string `json:"DESCRIPTION,omitempty" mapstructure:"DESCRIPTION"`
-	Unit          string `json:"UNIT,omitempty" mapstructure:"UNIT"`
-	UnitPrice     string `json:"UNIT_PRICE,omitempty" mapstructure:"UNIT_PRICE"`
-	CurrencyCode  string `json:"CURRENCY_CODE,omitempty" mapstructure:"CURRENCY_CODE"`
-	VatPercent    string `json:"VAT_PERCENT,omitempty" mapstructure:"VAT_PERCENT"`
-	IsGross       int    `json:"IS_GROSS,omitempty" mapstructure:"IS_GROSS"`
-	Tags          string `json:"TAGS,omitempty" mapstructure:"TAGS"`
+	// ArticleID is required for Update and ignored by Create.
+	ArticleID     fastbill.ID `json:"ARTICLE_ID,omitempty"`
+	ArticleNumber string      `json:"ARTICLE_NUMBER,omitempty"`
+	// Type is product, digital_product, service or none.
+	Type         string          `json:"TYPE,omitempty"`
+	Title        string          `json:"TITLE,omitempty"`
+	Description  string          `json:"DESCRIPTION,omitempty"`
+	Unit         string          `json:"UNIT,omitempty"`
+	UnitPrice    fastbill.Number `json:"UNIT_PRICE,omitempty"`
+	CurrencyCode string          `json:"CURRENCY_CODE,omitempty"`
+	VatPercent   fastbill.Number `json:"VAT_PERCENT,omitempty"`
+	// IsGross (1) means UnitPrice includes VAT.
+	IsGross fastbill.Flag `json:"IS_GROSS,omitempty"`
+	Tags    string        `json:"TAGS,omitempty"`
 }
 
-// CreateResponse article api response
+// CreateResponse is the answer of article.create.
 type CreateResponse struct {
-	Status    string `json:"STATUS" mapstructure:"STATUS"`
-	ArticleID int    `json:"ARTICLE_ID" mapstructure:"ARTICLE_ID"`
+	Status    string      `json:"STATUS"`
+	ArticleID fastbill.ID `json:"ARTICLE_ID"`
 }
 
-// UpdateResponse article api response
-type UpdateResponse struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
+type idRequest struct {
+	ArticleID fastbill.ID `json:"ARTICLE_ID"`
 }
 
 type getResponse struct {
-	Articles []Article `json:"ARTICLES"`
-}
-
-type deleteRequest struct {
-	ArticleID string `json:"ARTICLE_ID"`
-}
-
-type deleteResponse struct {
-	Status string `json:"STATUS" mapstructure:"STATUS"`
+	Articles fastbill.List[Article] `json:"ARTICLES"`
 }

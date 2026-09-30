@@ -1,40 +1,28 @@
+// Package template wraps the template.* services: the invoice and estimate
+// layouts of the account.
 package template
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all template api services
+// Client calls the template services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewTemplateClient creates a new template api client
-func NewTemplateClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns a template client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all templates restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter) ([]Template, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("template.get", parameter, nil)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Template, 0), err
+// Get lists the templates. FastBill has no filter for template.get.
+func (c *Client) Get(ctx context.Context, page fastbill.Page) ([]Template, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest[struct{}]("template.get", page, nil), &res); err != nil {
+		return nil, err
 	}
-
-	var templateResponse getResponse
-	err = mapstructure.Decode(res.Response, &templateResponse)
-	if err != nil {
-		return make([]Template, 0), fmt.Errorf("failed to parse template response: %s", err.Error())
-	}
-
-	return templateResponse.Templates, nil
+	return res.Templates, nil
 }

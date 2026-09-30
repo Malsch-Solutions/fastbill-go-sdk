@@ -1,79 +1,48 @@
+// Package webhook wraps the webhook.* services, which register endpoints
+// that FastBill notifies about changes, and parses those notifications
+// with ParseEvent.
 package webhook
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/service"
-	"github.com/mitchellh/mapstructure"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
 )
 
-// Client includes all webhook api services
+// Client calls the webhook services.
 type Client struct {
-	client service.Service
+	r fastbill.Requester
 }
 
-// NewWebhookClient creates a new webhook api client
-func NewWebhookClient(c service.Service) *Client {
-	cClient := Client{client: c}
-	return &cClient
+// NewClient returns a webhook client.
+func NewClient(r fastbill.Requester) *Client {
+	return &Client{r: r}
 }
 
-// Get get all webhooks restricted by the given filters
-func (c *Client) Get(parameter *parameter.Parameter) ([]Webhook, error) {
-
-	fastBillRequest := request.NewRequestWithFilters("webhook.get", parameter, nil)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return make([]Webhook, 0), err
+// Get lists the registered webhooks. FastBill has no filter for
+// webhook.get.
+func (c *Client) Get(ctx context.Context, page fastbill.Page) ([]Webhook, error) {
+	var res getResponse
+	if err := c.r.Do(ctx, fastbill.GetRequest[struct{}]("webhook.get", page, nil), &res); err != nil {
+		return nil, err
 	}
-
-	var webhookResponse getResponse
-	err = mapstructure.Decode(res.Response, &webhookResponse)
-	if err != nil {
-		return make([]Webhook, 0), fmt.Errorf("failed to parse webhook response: %s", err.Error())
-	}
-
-	return webhookResponse.Webhooks, nil
+	return res.Webhooks, nil
 }
 
-// Create create a webhook
-func (c *Client) Create(webhook *Webhook) (CreateResponse, error) {
-
-	var responseWebhook CreateResponse
-
-	fastBillRequest := request.NewRequestWithData("webhook.create", webhook)
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return responseWebhook, err
+// Create registers a webhook.
+func (c *Client) Create(ctx context.Context, req *Request) (CreateResponse, error) {
+	var res CreateResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("webhook.create", req), &res); err != nil {
+		return res, err
 	}
-
-	err = mapstructure.Decode(res.Response, &responseWebhook)
-	if err != nil {
-		return responseWebhook, fmt.Errorf("failed to parse webhook response: %s", err.Error())
-	}
-
-	return responseWebhook, nil
+	return res, fastbill.StatusResponse{Status: res.Status}.Err("webhook.create")
 }
 
-// Delete delete a webhook
-func (c *Client) Delete(webhookID string) (bool, error) {
-	fastBillRequest := request.NewRequestWithData("webhook.delete", deleteRequest{WebhookID: webhookID})
-	res, err := c.client.DoRequest(fastBillRequest)
-
-	if err != nil {
-		return false, err
+// Delete removes a webhook registration.
+func (c *Client) Delete(ctx context.Context, webhookID fastbill.ID) error {
+	var res fastbill.StatusResponse
+	if err := c.r.Do(ctx, fastbill.DataRequest("webhook.delete", idRequest{WebhookID: webhookID}), &res); err != nil {
+		return err
 	}
-
-	var deleteRes deleteResponse
-
-	err = mapstructure.Decode(res.Response, &deleteRes)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse webhook response: %s", err.Error())
-	}
-
-	return deleteRes.Status == "success", nil
+	return res.Err("webhook.delete")
 }

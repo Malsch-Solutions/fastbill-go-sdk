@@ -1,174 +1,122 @@
-package revenue
+package revenue_test
 
 import (
+	"context"
 	"errors"
-	"io"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/parameter"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/request"
-	"github.com/malsch-solutions/fastbill-go-sdk/modules/response"
-	"github.com/stretchr/testify/assert"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/internal/fastbilltest"
+	"github.com/malsch-solutions/fastbill-go-sdk/v2/modules/revenue"
 )
 
-type dummyService struct {
-}
+var ctx = context.Background()
 
-func (c *dummyService) DoRequest(fastBillRequest request.Request) (response.Response, error) {
+// A revenue as FastBill sends it: IDs and text as strings, amounts as
+// numbers, an empty list as {}.
+const revenueJSON = `{
+	"INVOICE_ID": "4501", "TYPE": "outgoing", "CUSTOMER_ID": "59", "CUSTOMER_NUMBER": "1042",
+	"PROJECT_ID": "7", "CURRENCY_CODE": "EUR", "BASE_CURRENCY_CODE": "EUR", "EXCHANGE_RATE": 1,
+	"INVOICE_NUMBER": "E-17", "INVOICE_DATE": "2026-09-02", "DUE_DATE": "2026-09-16", "PAID_DATE": "2026-09-10",
+	"IS_CANCELED": 0, "PAYMENT_TYPE": "1", "CASH_DISCOUNT_DAYS": "0",
+	"SUB_TOTAL": 1234.56, "VAT_TOTAL": 234.57, "TOTAL": 1469.13, "ORGANIZATION": "Kunde AG",
+	"VAT_ITEMS": [{"VAT_PERCENT": 19, "COMPLETE_NET": 1234.56, "VAT_VALUE": 234.57}],
+	"ITEMS": [{"INVOICE_ITEM_ID": "33", "DESCRIPTION": "Beratung", "QUANTITY": 2.5, "UNIT_PRICE": 493.824, "VAT_PERCENT": 19, "CURRENCY_CODE": "EUR"}],
+	"PAYMENTS": [{"PAYMENT_ID": "88", "DATE": "2026-09-10", "AMOUNT": "1469.13", "CURRENCY_CODE": "EUR", "TYPE": "1"}],
+	"COMMENTS": {},
+	"LASTUPDATE": "2026-09-10 12:00:00", "DOCUMENT_URL": "https://my.fastbill.com/download/e.pdf"
+}`
 
-	if fastBillRequest.Service == "revenue.get" {
-		return response.Response{
-			Response: getResponse{Revenues: []Revenue{
-				{},
-			}},
-		}, nil
+func TestGet(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"REVENUES":[` + revenueJSON + `]}` })
+	revenues, err := revenue.NewClient(server.Client()).Get(ctx, fastbill.Page{Limit: 100}, &revenue.Filter{CustomerID: "59", StartPaidDate: "2026-09-01"})
+	if err != nil {
+		t.Fatal(err)
 	}
-
-	if fastBillRequest.Service == "revenue.create" {
-		return response.Response{
-			Response: CreateResponse{InvoiceID: 10, Status: "success"},
-		}, nil
+	if len(revenues) != 1 {
+		t.Fatalf("revenues = %+v", revenues)
 	}
-
-	if fastBillRequest.Service == "revenue.delete" {
-		return response.Response{
-			Response: deleteResponse{Status: "success"},
-		}, nil
+	r := revenues[0]
+	if r.InvoiceID != "4501" || r.ProjectID != "7" || r.Total != "1469.13" || r.ExchangeRate != "1" ||
+		r.IsCanceled != fastbill.No || r.PaymentType != "1" || r.InvoiceNumber != "E-17" {
+		t.Errorf("revenue = %+v", r)
 	}
-
-	if fastBillRequest.Service == "revenue.setpaid" {
-		return response.Response{
-			Response: SetPaidResponse{Status: "success", InvoiceNumber: "1337"},
-		}, nil
+	if item := r.Items[0]; item.InvoiceItemID != "33" || item.Quantity != "2.5" || item.UnitPrice != "493.824" {
+		t.Errorf("item = %+v", item)
 	}
-
-	return response.Response{}, errors.New("unknown services")
-}
-
-func (c *dummyService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	if fastBillRequest.Service == "revenue.create" {
-		return response.Response{
-			Response: CreateResponse{InvoiceID: 1, Status: "success"},
-		}, nil
+	if len(r.Comments) != 0 || r.Payments[0].Amount != "1469.13" || r.VatItems[0].VatPercent != "19" {
+		t.Errorf("comments = %v, payments = %v, vat items = %v", r.Comments, r.Payments, r.VatItems)
 	}
-	return response.Response{}, errors.New("unknown service")
+	got := server.Last(t)
+	if got.Service != "revenue.get" || got.Limit != 100 {
+		t.Errorf("request = %+v", got)
+	}
+	fastbilltest.JSONEqual(t, got.Filter, `{"CUSTOMER_ID":"59","START_PAID_DATE":"2026-09-01"}`)
 }
 
-func TestNewRevenueClient(t *testing.T) {
-	client := NewRevenueClient(&dummyService{})
-	assert.IsType(t, &Client{}, client)
+func TestCreate(t *testing.T) {
+	server := fastbilltest.New(t, func(fastbilltest.Received) string { return `{"STATUS":"success","INVOICE_ID":4502}` })
+	res, err := revenue.NewClient(server.Client()).Create(ctx, &revenue.Request{
+		InvoiceDate: "2026-09-02",
+		CustomerID:  "59",
+		SubTotal:    fastbill.NewNumber(1234.56),
+		VatTotal:    fastbill.NewNumber(234.57),
+	}, strings.NewReader("receipt"), "beleg.pdf")
+	if err != nil || res.InvoiceID != "4502" {
+		t.Fatalf("Create = %+v, %v", res, err)
+	}
+	got := server.Last(t)
+	if got.Service != "revenue.create" || got.FileName != "beleg.pdf" || got.File != "receipt" {
+		t.Errorf("request = %+v", got)
+	}
+	fastbilltest.JSONEqual(t, got.Data, `{"INVOICE_DATE":"2026-09-02","CUSTOMER_ID":"59","SUB_TOTAL":1234.56,"VAT_TOTAL":234.57}`)
 }
 
-func TestRevenueClientGet(t *testing.T) {
-	client := NewRevenueClient(&dummyService{})
-	resp, err := client.Get(&parameter.Parameter{}, nil)
-	assert.NoError(t, err)
-	assert.IsType(t, []Revenue{}, resp)
-	assert.Len(t, resp, 1)
-}
-
-func TestRevenueClientCreate(t *testing.T) {
-	client := NewRevenueClient(&dummyService{})
-	resp, err := client.Create(&Request{}, strings.NewReader(""), "file.txt")
-	assert.NoError(t, err)
-	assert.IsType(t, CreateResponse{}, resp)
-}
-
-func TestRevenueClientDelete(t *testing.T) {
-	client := NewRevenueClient(&dummyService{})
-	resp, err := client.Delete("1337")
-	assert.NoError(t, err)
-	assert.True(t, resp)
-}
-
-func TestRevenueClientSetPaid(t *testing.T) {
-	client := NewRevenueClient(&dummyService{})
-	resp, err := client.SetPaid(&SetPaidRequest{
-		InvoiceID: "1337",
-		PaidDate:  time.Now(),
+func TestSetPaidAndDelete(t *testing.T) {
+	server := fastbilltest.New(t, func(r fastbilltest.Received) string {
+		if r.Service == "revenue.setpaid" {
+			return `{"STATUS":"success","INVOICE_NUMBER":"E-17"}`
+		}
+		return `{"STATUS":"success"}`
 	})
-	assert.NoError(t, err)
-	assert.Equal(t, "success", resp.Status)
+	c := revenue.NewClient(server.Client())
+
+	if res, err := c.SetPaid(ctx, &revenue.SetPaidRequest{InvoiceID: "4501", PaidDate: "2026-09-30"}); err != nil || res.InvoiceNumber != "E-17" {
+		t.Errorf("SetPaid = %+v, %v", res, err)
+	}
+	got := server.Last(t)
+	if got.Service != "revenue.setpaid" {
+		t.Errorf("service = %s", got.Service)
+	}
+	fastbilltest.JSONEqual(t, got.Data, `{"INVOICE_ID":"4501","PAID_DATE":"2026-09-30"}`)
+
+	if err := c.Delete(ctx, "4501"); err != nil {
+		t.Error(err)
+	}
+	got = server.Last(t)
+	if got.Service != "revenue.delete" {
+		t.Errorf("service = %s", got.Service)
+	}
+	fastbilltest.JSONEqual(t, got.Data, `{"INVOICE_ID":"4501"}`)
 }
 
-type dummyErrorService struct {
-}
-
-func (c *dummyErrorService) DoRequest(_ request.Request) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func (c *dummyErrorService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{}, errors.New("unknown service")
-}
-
-func TestRevenueErrorClientGet(t *testing.T) {
-	client := NewRevenueClient(&dummyErrorService{})
-	_, err := client.Get(&parameter.Parameter{}, nil)
-	assert.Error(t, err)
-}
-
-func TestRevenueErrorClientCreate(t *testing.T) {
-	client := NewRevenueClient(&dummyErrorService{})
-	_, err := client.Create(&Request{}, strings.NewReader(""), "file.txt")
-	assert.Error(t, err)
-}
-
-func TestRevenueErrorClientDelete(t *testing.T) {
-	client := NewRevenueClient(&dummyErrorService{})
-	_, err := client.Delete("1337")
-	assert.Error(t, err)
-}
-
-func TestRevenueErrorClientSetPaid(t *testing.T) {
-	client := NewRevenueClient(&dummyErrorService{})
-	_, err := client.SetPaid(&SetPaidRequest{
-		InvoiceID: "1337",
-		PaidDate:  time.Now(),
+func TestErrors(t *testing.T) {
+	server := fastbilltest.New(t, func(r fastbilltest.Received) string {
+		if r.Service == "revenue.delete" {
+			return `{"STATUS":"failed"}`
+		}
+		return `{"ERRORS":["Revenue not found"]}`
 	})
-	assert.Error(t, err)
-}
-
-type dummyWrongStructService struct {
-}
-
-func (c *dummyWrongStructService) DoRequest(_ request.Request) (response.Response, error) {
-	return response.Response{
-		Response: true,
-	}, nil
-}
-
-func (c *dummyWrongStructService) DoMultiPartRequest(fastBillRequest request.Request, file io.Reader, fileName string) (response.Response, error) {
-	return response.Response{
-		Response: true,
-	}, nil
-}
-
-func TestRevenueWrongStructClientGet(t *testing.T) {
-	client := NewRevenueClient(&dummyWrongStructService{})
-	_, err := client.Get(&parameter.Parameter{}, nil)
-	assert.Error(t, err)
-}
-
-func TestRevenueWrongStructClientCreate(t *testing.T) {
-	client := NewRevenueClient(&dummyWrongStructService{})
-	_, err := client.Create(&Request{}, strings.NewReader(""), "file.txt")
-	assert.Error(t, err)
-}
-
-func TestRevenueWrongStructClientDelete(t *testing.T) {
-	client := NewRevenueClient(&dummyWrongStructService{})
-	_, err := client.Delete("1337")
-	assert.Error(t, err)
-}
-
-func TestRevenueWrongStructClientSetPaid(t *testing.T) {
-	client := NewRevenueClient(&dummyWrongStructService{})
-	_, err := client.SetPaid(&SetPaidRequest{
-		InvoiceID: "1337",
-		PaidDate:  time.Now(),
-	})
-	assert.Error(t, err)
+	c := revenue.NewClient(server.Client())
+	var apiErr *fastbill.APIError
+	if _, err := c.Get(ctx, fastbill.Page{}, nil); !errors.As(err, &apiErr) || apiErr.Messages[0] != "Revenue not found" {
+		t.Errorf("Get: %v", err)
+	}
+	if _, err := c.SetPaid(ctx, &revenue.SetPaidRequest{InvoiceID: "1"}); !errors.As(err, &apiErr) {
+		t.Errorf("SetPaid: %v", err)
+	}
+	if err := c.Delete(ctx, "1"); !errors.As(err, &apiErr) {
+		t.Errorf("Delete with failed status: %v", err)
+	}
 }
